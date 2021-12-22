@@ -365,7 +365,7 @@ main <- function(df_Param, ParExtr, name){
   prevalence(df_Estim, name)
 }
 
-path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/SNPs_model/"
+path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Loading true haplotype frequencies and MOI
 dfParam <- readRDS(paste0(path, "Dataset/trueParameters.rds"))

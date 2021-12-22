@@ -127,7 +127,7 @@ dataframe_builder_Moiperf <- function(perf_estim, locNumb){
   df1
 }
 
-path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/SNPs_model/"
+path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Importing extra parameters
 parExtr  <- readRDS(paste0(path, "Dataset/extraParameters.rds"))

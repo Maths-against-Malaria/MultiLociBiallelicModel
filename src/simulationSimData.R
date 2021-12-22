@@ -5,7 +5,7 @@
 # Last modified: 22.12.21
 
 # Relative path
-path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/SNPs_model/"
+path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Loading external ressources
 source(paste0(path, "src/nbiallelicModel.R"))          ## Loading Model
