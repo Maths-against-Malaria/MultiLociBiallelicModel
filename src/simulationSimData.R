@@ -1,5 +1,5 @@
 # Title        : Simulation study using simulated data
-# Objective    : Implement the EM-algorithm on simulated data and save the estimates
+# Objectives   : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : christian Tsoungui Obama, Kristan A. Schneider
 # Created on   : 03.04.21
 # Last modified: 22.12.21
@@ -71,10 +71,10 @@ for (i in 1:Nn){
 }
 
 # Saving the list for post-processing
-saveRDS(out, file = paste0(path, "Dataset/modelEstimates.rds"))
+saveRDS(out, file = paste0(path, "dataset/modelEstimates.rds"))
 
 # Saving the true parameters
-saveRDS(True_param, file = paste0(path, "Dataset/trueParameters.rds"))
+saveRDS(True_param, file = paste0(path, "dataset/trueParameters.rds"))
 
 # Saving the extra parameters
-saveRDS(ParExtra, file = paste0(path, "Dataset/extraParameters.rds"))
+saveRDS(ParExtra, file = paste0(path, "dataset/extraParameters.rds"))

@@ -130,8 +130,8 @@ dataframe_builder_Moiperf <- function(perf_estim, locNumb){
 path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Importing extra parameters
-parExtr  <- readRDS(paste0(path, "Dataset/extraParameters.rds"))
-parTrue  <- readRDS(paste0(path, "Dataset/trueParameters.rds"))
+parExtr  <- readRDS(paste0(path, "dataset/extraParameters.rds"))
+parTrue  <- readRDS(paste0(path, "dataset/trueParameters.rds"))
 
 main <- function(ParExtr, ParTru, name){
   NLbd  <- ParExtr[[1]]
@@ -148,9 +148,9 @@ main <- function(ParExtr, ParTru, name){
 
   if(1==0){ # Plotting prevalence from simulated data
     # Importing the data to plot
-    amb_prev   <- readRDS(paste0(path, "Dataset/amb_prevalence_Estim.rds"))
-    unamb_prev <- readRDS(paste0(path, "Dataset/unamb_prevalence_Estim.rds"))
-    prev       <- readRDS(paste0(path, "Dataset/prevalence_Estim.rds"))
+    amb_prev   <- readRDS(paste0(path, "dataset/ambPrevalenceEstimates.rds"))
+    unamb_prev <- readRDS(paste0(path, "dataset/unambPrevalenceEstimates.rds"))
+    prev       <- readRDS(paste0(path, "dataset/prevalenceEstimates.rds"))
 
     # Plots parameters
     legende1 <- c('ambiguous', 'unambiguous', 'relative')
@@ -237,8 +237,8 @@ main <- function(ParExtr, ParTru, name){
 
   if(1==0){ # Plotting bias and coefficient of variation for MOI from simulated data
     # Importing the data to plot
-    moibias  <- readRDS(paste0(path, "Dataset/moibias.rds"))
-    moicv    <- readRDS(paste0(path, "Dataset/moicv.rds"))
+    moibias  <- readRDS(paste0(path, "dataset/moibias.rds"))
+    moicv    <- readRDS(paste0(path, "dataset/moicv.rds"))
 
     # Plots parameters
     legende1  <- NSamp

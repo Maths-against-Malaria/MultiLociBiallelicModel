@@ -368,10 +368,10 @@ main <- function(df_Param, ParExtr, name){
 path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Loading true haplotype frequencies and MOI
-dfParam <- readRDS(paste0(path, "Dataset/trueParameters.rds"))
+dfParam <- readRDS(paste0(path, "dataset/trueParameters.rds"))
 
 # Loading extra parameters
-parExtr  <- readRDS(paste0(path, "Dataset/extraParameters.rds"))
+parExtr  <- readRDS(paste0(path, "dataset/extraParameters.rds"))
 
 # Running the performance checker ('' <- simualted data, kenya <- kenyan data)
 main(dfEstim, dfParam, parExtr, '')

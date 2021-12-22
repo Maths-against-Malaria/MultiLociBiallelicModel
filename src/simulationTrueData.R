@@ -15,7 +15,7 @@ path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/Mu
 source(paste0(path, "src/nbiallelicModel.R"))          ## Loading Model
 source(paste0(path, "src/dataGenerator.R"))            ## Loading the data generaor for model
 
-df <- read.xlsx(paste0(path,'Dataset/MutFreq2005-2017_CT.xlsx'), 1)
+df <- read.xlsx(paste0(path,'dataset/MutFreq2005-2017_CT.xlsx'), 1)
 
 # Data origin
 name <- 'Kenya'
@@ -104,10 +104,10 @@ for (i in 1:Nn){
 }
 
 # Saving the list for post-processing
-saveRDS(out, file = paste0(path, "Dataset/modelEstimates", name, ".rds"))
+saveRDS(out, file = paste0(path, "dataset/modelEstimates", name, ".rds"))
 
 # Saving the true parameters
-saveRDS(True_param, file = paste0(path, "Dataset/trueParameters", name, ".rds"))
+saveRDS(True_param, file = paste0(path, "dataset/trueParameters", name, ".rds"))
 
 # Saving the extra parameters
-saveRDS(ParExtra, file = paste0(path, "Dataset/extraParameters", name, ".rds"))
+saveRDS(ParExtra, file = paste0(path, "dataset/extraParameters", name, ".rds"))
