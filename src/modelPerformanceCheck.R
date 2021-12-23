@@ -85,8 +85,8 @@ bias <- function(df_Estim, df_Param, name){
   }
 
   # Saving the estimates
-  saveRDS(freqbiasloc, file = paste0(path, "Dataset/freqbias",name ,".rds"))
-  saveRDS(moibiasloc, file = paste0(path, "Dataset/moibias",name ,".rds"))
+  saveRDS(freqbiasloc, file = paste0(path, "dataset/freqbias",name ,".rds"))
+  saveRDS(moibiasloc, file = paste0(path, "dataset/moibias",name ,".rds"))
 }
 
 coefvar <- function(df_Estim, df_Param, name){
@@ -131,7 +131,7 @@ coefvar <- function(df_Estim, df_Param, name){
   }
 
   # Saving the estimates
-  saveRDS(moicvloc, file = paste0(path, "Dataset/moicv", name, ".rds"))
+  saveRDS(moicvloc, file = paste0(path, "dataset/moicv", name, ".rds"))
 }
 
 amb_prevalence <- function(df_Estim, name){
@@ -178,7 +178,7 @@ amb_prevalence <- function(df_Estim, name){
   qh_loc
 
   # Saving the estimates
-  saveRDS(qh_loc, file = paste0(path, "Dataset/amb_prevalence_Estim", name, ".rds"))
+  saveRDS(qh_loc, file = paste0(path, "dataset/ambPrevalenceEstimates", name, ".rds"))
 }
 
 unamb_prevalence <- function(df_Estim, name){
@@ -255,7 +255,7 @@ unamb_prevalence <- function(df_Estim, name){
   qh_loc
 
   # Saving the estimates
-  saveRDS(qh_loc, file = paste0(path,  "Dataset/unambPrevalenceEstim", name, ".rds"))
+  saveRDS(qh_loc, file = paste0(path,  "dataset/unambPrevalenceEstimates", name, ".rds"))
 }
 
 prevalence <- function(df_Estim, name){
@@ -333,11 +333,11 @@ prevalence <- function(df_Estim, name){
   qh_loc
 
   # Saving the estimates
-  saveRDS(qh_loc, file = paste0(path, "Dataset/prevalenceEstim", name,".rds"))
+  saveRDS(qh_loc, file = paste0(path, "dataset/prevalenceEstimates", name,".rds"))
 }
 
 main <- function(df_Param, ParExtr, name){
-  df_Estim <- readRDS(paste0(path, "Dataset/modelEstimates", name, ".rds"))
+  df_Estim <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
 
   # Variables initialization
   NLbd          <- ParExtr[[1]]
@@ -365,7 +365,7 @@ main <- function(df_Param, ParExtr, name){
   prevalence(df_Estim, name)
 }
 
-path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
+path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Loading true haplotype frequencies and MOI
 dfParam <- readRDS(paste0(path, "dataset/trueParameters.rds"))

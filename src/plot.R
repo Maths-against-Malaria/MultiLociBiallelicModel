@@ -127,12 +127,6 @@ dataframe_builder_Moiperf <- function(perf_estim, locNumb){
   df1
 }
 
-path <- "/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
-
-# Importing extra parameters
-parExtr  <- readRDS(paste0(path, "dataset/extraParameters.rds"))
-parTrue  <- readRDS(paste0(path, "dataset/trueParameters.rds"))
-
 main <- function(ParExtr, ParTru, name){
   NLbd  <- ParExtr[[1]]
   Nn    <- ParExtr[[2]]
@@ -182,7 +176,7 @@ main <- function(ParExtr, ParTru, name){
             p <- beautify(p, legende1, c(0.20, 0.25), cbPalette, 'Prevalence')
             p <- p + labs(x=expression(lambda), y="Prevalence", title=paste0("P = ", round(trufreq_vec[i], 3), ", N = ", j))
             p <- p + expand_limits(y=0)
-            outfile <- paste0(path,"Plots/Prev_plots_SD/", "prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", loci_numb[l], name, ".pdf")
+            outfile <- paste0(path,"plots/Prev_plots_SD/", "prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", loci_numb[l], name, ".pdf")
             pdf(outfile, height=5, width=8)
             print(p)
             dev.off()
@@ -194,7 +188,7 @@ main <- function(ParExtr, ParTru, name){
 
   if(1==0){ # Plotting bias for haplotype frequencies from simulated data
     # Importing the data to plot
-    freqbias <- readRDS(paste0(path, "Dataset/freqbias.rds"))
+    freqbias <- readRDS(paste0(path, "dataset/freqbias.rds"))
 
     # Plots parameters
     legende1  <- NSamp
@@ -225,7 +219,7 @@ main <- function(ParExtr, ParTru, name){
               p <- beautify(p, legende1, NULL, cbPalette, 'Sample')
               p <- p + expand_limits(y=0)
               p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias frequencies in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
-              outfile <- paste0(path,"Plots/Bias_cv_plots_SD/frequency/", "bias_", shape_typ[k], "_freq_", i, "_nloci_", loci_numb[l], name, ".pdf")
+              outfile <- paste0(path,"plots/Bias_cv_plots_SD/frequency/", "bias_", shape_typ[k], "_freq_", i, "_nloci_", loci_numb[l], name, ".pdf")
               pdf(outfile, height=5, width=8)
               print(p)
               dev.off()
@@ -268,7 +262,7 @@ main <- function(ParExtr, ParTru, name){
           p <- beautify(p, legende1, NULL, cbPalette, 'Sample')
           p <- p + expand_limits(y=0)
           p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias MOI in %'))
-          outfile <- paste0(path,"Plots/Bias_cv_plots_SD/moi/", "bias_", shape_typ[k], "_moi_nloci_", loci_numb[l], name, ".pdf")
+          outfile <- paste0(path,"plots/Bias_cv_plots_SD/moi/", "bias_", shape_typ[k], "_moi_nloci_", loci_numb[l], name, ".pdf")
           pdf(outfile, height=5, width=8)
           print(p)
           dev.off()
@@ -283,7 +277,7 @@ main <- function(ParExtr, ParTru, name){
           p <- beautify(p, legende1, NULL, cbPalette, 'Sample')
           p <- p + expand_limits(y=0)
           p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Coef. variation MOI'))
-          outfile <- paste0(path,"Plots/Bias_cv_plots_SD/moi/", "coefvar_", shape_typ[k], "_moi_nloci_", loci_numb[l], name, ".pdf")
+          outfile <- paste0(path,"plots/Bias_cv_plots_SD/moi/", "coefvar_", shape_typ[k], "_moi_nloci_", loci_numb[l], name, ".pdf")
           pdf(outfile, height=5, width=8)
           print(p)
           dev.off()
@@ -292,6 +286,12 @@ main <- function(ParExtr, ParTru, name){
   }
 
 }
+
+path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
+
+# Importing extra parameters
+parExtr  <- readRDS(paste0(path, "dataset/extraParameters.rds"))
+parTrue  <- readRDS(paste0(path, "dataset/trueParameters.rds"))
 
 # Running the plots ('' <- simualted data, kenya <- kenyan data)
 main(parExtr, parTrue, '')
