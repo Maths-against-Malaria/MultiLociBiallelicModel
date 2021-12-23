@@ -78,3 +78,5 @@ saveRDS(True_param, file = paste0(path, "dataset/trueParameters.rds"))
 
 # Saving the extra parameters
 saveRDS(ParExtra, file = paste0(path, "dataset/extraParameters.rds"))
+
+print("Simulation finished check your data")
