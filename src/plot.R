@@ -133,10 +133,10 @@ main <- function(ParTru, name){
   shape_typ <- c('sym', 'asym')
 
   if(name=="Kenya"){
-    dir       <- 'DD'
+    dir        <- 'DD'
     shape_typ2 <- ''
   }else{
-    dir       <- 'SD'
+    dir        <- 'SD'
   }
   
   # Color palette (color-blind friendly) for the plots
@@ -147,7 +147,7 @@ main <- function(ParTru, name){
     # Importing the data to plot
     amb_prev   <- readRDS(paste0(path, "dataset/ambPrevalenceEstimates", name, ".rds"))
     unamb_prev <- readRDS(paste0(path, "dataset/unambPrevalenceEstimates", name, ".rds"))
-    prev       <- unamb_prev #readRDS(paste0(path, "dataset/prevalenceEstimates", name, ".rds"))
+    prev       <- readRDS(paste0(path, "dataset/prevalenceEstimates", name, ".rds"))
 
     # Plots parameters
     legende1 <- c('ambiguous', 'unambiguous', 'relative')
@@ -156,7 +156,7 @@ main <- function(ParTru, name){
       # Building the prevalence dataframe
       df_ambprev   <- dataframe_builder_prev(amb_prev, 'amb_prev', l)
       df_unambprev <- dataframe_builder_prev(unamb_prev, 'unamb_prev', l)
-      df_prev      <- df_unambprev #dataframe_builder_prev(prev, 'prev', l)
+      df_prev      <- dataframe_builder_prev(prev, 'prev', l)
 
       df <- rbind(df_ambprev,df_unambprev,df_prev)
       tru_freq <- ParTru[[1]][[l]]
@@ -285,7 +285,7 @@ main <- function(ParTru, name){
   }
 }
 
-path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
+#path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 path <- '/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/'
 
 # Define data origin

@@ -3,7 +3,7 @@
 #                and the estimates of prevalence
 # Created by   : Christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 20.12.21
+# Last modified: 25.12.21
 
 # Importing libraries
 library(wordspace)
@@ -163,8 +163,9 @@ amb_prevalence <- function(df_Estim, name){
           ## For each set of estimates, compute prevalence
           amb_prevalence <- (exp(tmp1[1,]) - exp(1-tmp1[2:numHpo,])^tmp1[1,])/(exp(tmp1[1,])-1)
 
-          ## Remove columns with NAN values
-          qh <- rowMeans(amb_prevalence[,!is.nan(colSums(amb_prevalence))])
+          ## Replace entries with NAN values by 0
+          amb_prevalence[is.na(amb_prevalence)] <- 0.0
+          qh <- rowMeans(amb_prevalence, na.rm = TRUE)
 
           ## Save the prevalence in a list
           qh_freq[[i]] <- qh
