@@ -50,7 +50,7 @@ dataframe_builder_prev <- function(prev_estim, name, locNumb){
   cnames <- c('prev', 'sample', 'freq', 'shape')
   df1 <- array(0, dim = c(NRow, length(cnames)))
   df1 <- as.data.frame(df1)
-  colnames(df1) <- 
+  colnames(df1) <- cnames
   samp_vec <- rep(NSamp, each=NRow/(length(NSamp)*NFreq))
   df1[,'sample'] <- as.factor(rep(samp_vec, NFreq))
   df1[,'freq']   <- as.factor(rep(1:Hvec[locNumb], NRow/(length(lbdavec)*Hvec[locNumb])))
@@ -134,32 +134,29 @@ main <- function(ParTru, name){
 
   if(name=="Kenya"){
     dir       <- 'DD'
-    loci_numb <- c(10)
     shape_typ2 <- ''
   }else{
     dir       <- 'SD'
-    loci_numb <- c(2, 5)
   }
-  numbloci <- length(loci_numb)
-
+  
   # Color palette (color-blind friendly) for the plots
   cbPalette <- c(rgb(0,0,0), rgb(.35, .70, .90), rgb(.90,.60,0), rgb(0,.60,.50), rgb(0,.45,.70), rgb(.80,.40,0), rgb(.5, .5, .5))
   lty <- c("dashed", "solid")
 
-  if(1==0){ # Plotting prevalence
+  if(1==1){ # Plotting prevalence
     # Importing the data to plot
     amb_prev   <- readRDS(paste0(path, "dataset/ambPrevalenceEstimates", name, ".rds"))
     unamb_prev <- readRDS(paste0(path, "dataset/unambPrevalenceEstimates", name, ".rds"))
-    prev       <- readRDS(paste0(path, "dataset/prevalenceEstimates", name, ".rds"))
+    prev       <- unamb_prev #readRDS(paste0(path, "dataset/prevalenceEstimates", name, ".rds"))
 
     # Plots parameters
     legende1 <- c('ambiguous', 'unambiguous', 'relative')
 
     for(l in 1:numbloci){ # 2 or 5 loci
       # Building the prevalence dataframe
-      df_ambprev   <- dataframe_builder(amb_prev, 'amb_prev', l)
-      df_unambprev <- dataframe_builder(unamb_prev, 'unamb_prev', l)
-      df_prev      <- dataframe_builder(prev, 'prev', l)
+      df_ambprev   <- dataframe_builder_prev(amb_prev, 'amb_prev', l)
+      df_unambprev <- dataframe_builder_prev(unamb_prev, 'unamb_prev', l)
+      df_prev      <- df_unambprev #dataframe_builder_prev(prev, 'prev', l)
 
       df <- rbind(df_ambprev,df_unambprev,df_prev)
       tru_freq <- ParTru[[1]][[l]]
@@ -167,31 +164,33 @@ main <- function(ParTru, name){
       for(k in 1:NFreq){  # sym or asym
         trufreq_vec <- tru_freq[k,]
         for(i in 1:Hvec[l]){
-          for(j in NSamp){
-            df1 <- df %>%
-                  filter(sample == j, freq == i, shape == shape_typ[k]) %>%
-                  droplevels()
-            df1$lbd <- lbdavec
-            p <- ggplot(data = df1, aes(x=lbd))
-            p <- p + geom_line(aes(y = df1[,'prev'], color = type), size=1.)
-            p <- beautify(p, legende1, c(0.20, 0.25), cbPalette, lty, 'Prevalence')
-            p <- p + labs(x=expression(lambda), y="Prevalence", title=paste0("P = ", round(trufreq_vec[i], 3), ", N = ", j))
-            p <- p + expand_limits(y=0)
-            if(name == 'Kenya'){
-                outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", est_years[k], "_", name, ".pdf")
-            }else{
-                outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", loci_numb[l], "_", name, ".pdf")
-            }
-            pdf(outfile, height=5, width=8)
-            print(p)
-            dev.off()
+          if(trufreq_vec[i] != 0){
+              for(j in NSamp){
+                df1 <- df %>%
+                      filter(sample == j, freq == i, shape == shape_typ[k]) %>%
+                      droplevels()
+                df1$lbd <- lbdavec
+                p <- ggplot(data = df1, aes(x=lbd))
+                p <- p + geom_line(aes(y = df1[,'prev'], color = type), size=1.)
+                p <- beautify(p, legende1, c(0.20, 0.25), cbPalette, lty, 'Prevalence')
+                p <- p + labs(x=expression(lambda), y="Prevalence", title=paste0("P = ", round(trufreq_vec[i], 3), ", N = ", j))
+                p <- p + expand_limits(y=0)
+                if(name == 'Kenya'){
+                    outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", est_years[k], "_", name, ".pdf")
+                }else{
+                    outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", loci_numb[l], "_", name, ".pdf")
+                }
+                pdf(outfile, height=5, width=8)
+                print(p)
+                dev.off()
+              }
           }
         }
       }
     }
   }
 
-  if(1==1){ # Plotting bias for haplotype frequencies
+  if(1==0){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -230,7 +229,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias and coefficient of variation for MOI
+  if(1==0){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -297,16 +296,17 @@ parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
 parTrue  <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
 # Running the plots ('' <- simualted data, kenya <- kenyan data)
-NLbd  <- parExtr[[1]]
-Nn    <- parExtr[[2]]
-Hvec  <- parExtr[[3]]
-NN    <- parExtr[[4]]
-NEst  <- parExtr[[5]]
-NFreq <- parExtr[[6]]
-NLoci <- log2(Hvec)
-lbdavec <- parTrue[[2]]
-NSamp   <- parTrue[[3]]
-lbda    <- psi(lbdavec)
+NLbd      <- parExtr[[1]]
+Nn        <- parExtr[[2]]
+Hvec      <- parExtr[[3]]
+NN        <- parExtr[[4]]
+NEst      <- parExtr[[5]]
+NFreq     <- parExtr[[6]]
+NLoci     <- log2(Hvec)
+lbdavec   <- parTrue[[2]]
+NSamp     <- parTrue[[3]]
+lbda      <- psi(lbdavec)
+numbloci  <- length(Hvec)
 est_years <- c(2005, 2010)
 
 # Plotting
