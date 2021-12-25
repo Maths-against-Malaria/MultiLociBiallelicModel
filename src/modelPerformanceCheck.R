@@ -1,8 +1,8 @@
-# Title     : Simulation study
-# Objective : Compute the bias and coefficient of variation of the estimates,
-#             and the estimates of prevalence
-# Created by: Christian Tsoungui Obama
-# Created on: 03.04.21
+# Title        : Simulation study
+# Objective    : Compute the bias and coefficient of variation of the estimates,
+#                and the estimates of prevalence
+# Created by   : Christian Tsoungui Obama
+# Created on   : 03.04.21
 # Last modified: 20.12.21
 
 # Importing libraries
@@ -29,9 +29,9 @@ gen_func <- function(x, lambd){
 }
 
 bias <- function(df_Estim, df_Param, name){
-# This function implements bias of mean MOI and haplotype frequencies as defined in the manuscript
-# "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
-# alongside multiplicity of infection from SNPs data"
+  # This function implements bias of mean MOI and haplotype frequencies as defined in the manuscript
+  # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
+  # alongside multiplicity of infection from SNPs data"
 
   moibiasloc <- vector(mode = "list", length = Nn)
   freqbiasloc <- vector(mode = "list", length = Nn)
@@ -91,8 +91,8 @@ bias <- function(df_Estim, df_Param, name){
 
 coefvar <- function(df_Estim, df_Param, name){
   # This function implements coefficient of variation of mean MOI as defined in the manuscript
- # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
- # alongside multiplicity of infection from SNPs data"
+  # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
+  # alongside multiplicity of infection from SNPs data"
 
   moicvloc <- vector(mode = "list", length = Nn)
 
@@ -336,18 +336,9 @@ prevalence <- function(df_Estim, name){
   saveRDS(qh_loc, file = paste0(path, "dataset/prevalenceEstimates", name,".rds"))
 }
 
-main <- function(df_Param, ParExtr, name){
+main <- function(df_Param, name){
+  # Loading true haplotype frequencies and MOI
   df_Estim <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
-
-  # Variables initialization
-  NLbd          <- ParExtr[[1]]
-  Nn            <- ParExtr[[2]]
-  Hvec          <- ParExtr[[3]]
-  NN            <- ParExtr[[4]]
-  NEst          <- ParExtr[[5]]
-  NFreq         <- ParExtr[[6]]
-  NLoci         <- log2(Hvec)
-  mean_moi_true <- psi(df_Param[[2]])
 
   # Bias of frequencies and MOI
   bias(df_Estim, df_Param, name)
@@ -365,13 +356,25 @@ main <- function(df_Param, ParExtr, name){
   prevalence(df_Estim, name)
 }
 
-path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
+#path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
+path <- '/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/'
 
 # Loading true haplotype frequencies and MOI
-dfParam <- readRDS(paste0(path, "dataset/trueParameters.rds"))
+dfParam <- readRDS(paste0(path, "dataset/trueParametersKenya.rds"))
 
 # Loading extra parameters
-parExtr  <- readRDS(paste0(path, "dataset/extraParameters.rds"))
+parExtr  <- readRDS(paste0(path, "dataset/extraParametersKenya.rds"))
 
-# Running the performance checker ('' <- simualted data, kenya <- kenyan data)
-main(dfEstim, dfParam, parExtr, '')
+# Variables initialization
+NLbd          <- parExtr[[1]]
+Nn            <- parExtr[[2]]
+Hvec          <- parExtr[[3]]
+NN            <- parExtr[[4]]
+NEst          <- parExtr[[5]]
+NFreq         <- parExtr[[6]]
+NLoci         <- log2(Hvec)
+mean_moi_true <- psi(dfParam[[2]])
+
+# Running the performance checker ('' <- simulated data, kenya <- kenyan data)
+name <- 'Kenya'
+main(dfParam, name)
