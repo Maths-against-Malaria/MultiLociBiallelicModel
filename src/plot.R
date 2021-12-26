@@ -129,7 +129,6 @@ dataframe_builder_Moiperf <- function(perf_estim, locNumb){
 
 main <- function(ParTru, name){
   # Plots parameters
-  legende1  <- NSamp
   shape_typ <- c('sym', 'asym')
 
   if(name=="Kenya"){
@@ -178,7 +177,7 @@ main <- function(ParTru, name){
                 if(name == 'Kenya'){
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", est_years[k], "_", name, ".pdf")
                 }else{
-                    outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", loci_numb[l], "_", name, ".pdf")
+                    outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", NLoci[l], "_", name, ".pdf")
                 }
                 pdf(outfile, height=5, width=8)
                 print(p)
@@ -190,7 +189,10 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting bias for haplotype frequencies
+
+  legende1  <- NSamp
+
+  if(1==1){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -217,7 +219,7 @@ main <- function(ParTru, name){
                 if(name == 'Kenya'){
                   outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/frequency/", "bias_freq_", i, "_year_", est_years[k], "_", name, ".pdf")
                 }else{
-                  outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/frequency/", "bias_", shape_typ[k], "_freq_", i, "_nloci_", loci_numb[l], "_", name, ".pdf")
+                  outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/frequency/", "bias_", shape_typ[k], "_freq_", i, "_nloci_", NLoci[l], "_", name, ".pdf")
                 }
                 pdf(outfile, height=5, width=8)
                 print(p)
@@ -229,7 +231,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting bias and coefficient of variation for MOI
+  if(1==1){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -256,7 +258,7 @@ main <- function(ParTru, name){
           if(name == 'Kenya'){
               outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "bias_moi_year_", est_years[k], "_", name, ".pdf")
           }else{
-              outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "bias_", shape_typ[k], "_moi_nloci_", loci_numb[l], "_", name, ".pdf")
+              outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "bias_", shape_typ[k], "_moi_nloci_", NLoci[l], "_", name, ".pdf")
           }
           pdf(outfile, height=5, width=8)
           print(p)
@@ -275,7 +277,7 @@ main <- function(ParTru, name){
            if(name == 'Kenya'){
               outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "coefvar_moi_year_", est_years[k], "_", name, ".pdf")
           }else{
-              outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "coefvar_", shape_typ[k], "_moi_nloci_", loci_numb[l], "_", name, ".pdf")
+              outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "coefvar_", shape_typ[k], "_moi_nloci_", NLoci[l], "_", name, ".pdf")
           }
           pdf(outfile, height=5, width=8)
           print(p)
@@ -285,11 +287,10 @@ main <- function(ParTru, name){
   }
 }
 
-#path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
-path <- '/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/'
+path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- 'Kenya'
+name <- ''
 
 # Importing extra parameters
 parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))

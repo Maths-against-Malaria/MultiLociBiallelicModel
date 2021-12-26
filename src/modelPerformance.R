@@ -371,11 +371,10 @@ main <- function(df_Param, name){
   prevalence(df_Estim, df_Param, name)
 }
 
-#path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
-path <- '/Volumes/GoogleDrive/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/'
+path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- 'Kenya'
+name <- ''
 
 # Loading true haplotype frequencies and MOI
 dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
