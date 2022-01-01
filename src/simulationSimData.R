@@ -2,7 +2,7 @@
 # Objectives   : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : christian Tsoungui Obama, Kristan A. Schneider
 # Created on   : 03.04.21
-# Last modified: 22.12.21
+# Last modified: 01.01.22
 
 # Relative path
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
@@ -30,7 +30,7 @@ Nvec <- c(50, 100, 150, 200, 500)
 NN <- length(Nvec)
 
 # Number of estimates generated in the simulation
-NEst <- 10000
+NEst <- 100000
 
 # Number of frequencies set per (number of loci) case
 NFreq <- 2
@@ -52,6 +52,7 @@ True_param <- list(Pvec, lbdavec, Nvec)
 out <- vector(mode = "list", length = Nn)
 
 for (i in 1:Nn){
+  print(paste0("processing frequency distributions of locus: ", i))
   sizelist <- vector(mode = "list", length = NN)
   for (j in 1:NN){                                                                                ## For each value of the sample size
     lbdalist <- vector(mode = "list", length = NLbd)
@@ -70,6 +71,9 @@ for (i in 1:Nn){
   out[[i]] <- sizelist
 }
 
+# End of simulation warning
+print("Simulation finished save your data")
+
 # Saving the list for post-processing
 saveRDS(out, file = paste0(path, "dataset/modelEstimates.rds"))
 
@@ -78,5 +82,3 @@ saveRDS(True_param, file = paste0(path, "dataset/trueParameters.rds"))
 
 # Saving the extra parameters
 saveRDS(ParExtra, file = paste0(path, "dataset/extraParameters.rds"))
-
-print("Simulation finished check your data")
