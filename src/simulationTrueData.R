@@ -2,7 +2,7 @@
 # Objective    : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : Christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 22.12.21
+# Last modified: 01.01.22
 
 # Loading library
 library(xlsx)
@@ -59,7 +59,7 @@ Nvec <- c(50, 100, 150, 200, 500)
 NN <- length(Nvec)
 
 # Number of estimates generated in the simulation
-NEst <- 10000
+NEst <- 100000
 
 # Number of distributions of true frequencies for each number of loci (we remove 2017 estimates)
 NFreq <- length(est_years)-1
@@ -86,6 +86,7 @@ True_param <- list(Pvec, lbdavec, Nvec)
 out <- vector(mode = "list", length = Nn)
 
 for (i in 1:Nn){
+  print(paste0("Processing frequency distributions of locus: ", i))
   sizelist <- vector(mode = "list", length = NN)
   for (j in 1:NN){                                                                                ## For each value of the sample size
     lbdalist <- vector(mode = "list", length = NLbd)
@@ -104,6 +105,9 @@ for (i in 1:Nn){
   out[[i]] <- sizelist
 }
 
+# End of simulation warning
+print("Simulation finished, check your data.")
+
 # Saving the list for post-processing
 saveRDS(out, file = paste0(path, "dataset/modelEstimates", name, ".rds"))
 
@@ -112,5 +116,3 @@ saveRDS(True_param, file = paste0(path, "dataset/trueParameters", name, ".rds"))
 
 # Saving the extra parameters
 saveRDS(ParExtra, file = paste0(path, "dataset/extraParameters", name, ".rds"))
-
-print("Simulation finished, check your data.")
