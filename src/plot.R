@@ -189,7 +189,6 @@ main <- function(ParTru, name){
     }
   }
 
-
   legende1  <- NSamp
 
   if(1==1){ # Plotting bias for haplotype frequencies
@@ -290,7 +289,7 @@ main <- function(ParTru, name){
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- ''
+name <- 'Kenya'
 
 # Importing extra parameters
 parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
