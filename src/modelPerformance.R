@@ -161,9 +161,7 @@ amb_prevalence <- function(df_Estim, name){
           tmp1 <- df_Estim[[l]][[k]][[j]][, , i]
 
           ## For each set of estimates, compute prevalence
-          for (q in 1:NEst){
-            amb_prevalence <- (exp(tmp1[1,q]) - exp(1-tmp1[2:numHpo,q])^tmp1[1,q])/(exp(tmp1[1,q])-1)
-          }
+          amb_prevalence <- (exp(tmp1[1,]) - exp(1-tmp1[2:numHpo,])^tmp1[1,])/(exp(tmp1[1,])-1)
 
           ## Replace entries with NAN values by 0
           amb_prevalence[is.na(amb_prevalence)] <- 0.0
@@ -178,10 +176,10 @@ amb_prevalence <- function(df_Estim, name){
     }
     qh_loc[[l]] <- qh_Samp
   }
-  qh_loc
-
   # Saving the estimates
   saveRDS(qh_loc, file = paste0(path, "dataset/ambPrevalenceEstimates", name, ".rds"))
+
+  qh_loc
 }
 
 unamb_prevalence <- function(df_Estim, ParTru, name){
@@ -395,9 +393,6 @@ true_unamb_prevalence <- function(true_Par, ParTru, name){
     qh_loc[[l]] <- vector(mode = "list", length = NFreq)
     tru_freq <- ParTru[[1]][[l]]
 
-    #for (k in 1:NN){  # For each true sample size
-     # qh_lamb <- vector(mode = "list", length = NFreq)
-
       # Number of haplotypes
       numH <- Hvec[l]
 
@@ -409,9 +404,6 @@ true_unamb_prevalence <- function(true_Par, ParTru, name){
 
       ## For each haplotype in the table, build the set of observation Uh
       nLociUh <- nLoci+1
-
-      #for (j in 1:NLbd){ # For each true Lambda
-       # qh_freq <- vector(mode = "list", length = NFreq)
 
         for (i in 1:NFreq){ # For each choice of true frequency distribution
           rh <- array(0, dim = c(numH, NLbd))
@@ -551,7 +543,7 @@ true_prevalence <- function(true_Par, ParTru, name){
 main <- function(df_Param, true_Par, name){
   # Loading estimated haplotype frequencies and MOI
   df_Estim <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
-  
+
   # Bias of frequencies and MOI
   bias(df_Estim, df_Param, name)
 
@@ -603,19 +595,16 @@ numbloci <- length(Hvec)
 
 # Reformatting true parameters to compute true prevalence
 true_Param <- vector(mode='list', length=Nn)
-true_ambiguous_prev <- vector(mode='list', length=Nn)
-true_unambiguous_prev <- vector(mode='list', length=Nn)
-true_prev <- vector(mode='list', length=Nn)
+
 for (i in 1:Nn){
   tot_row <- Hvec[i]+1
-  true_Param[[i]] <- vector(mode='list', length=Nn)
-  for (j in 1:Nn){
+  true_Param[[i]] <- vector(mode='list', length=NFreq)
+  for (j in 1:NFreq){
     true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
     true_Param[[i]][[j]][1,] <- dfParam[[2]]
     true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
   }
 }
 
-
-# Running the performance checker ('' <- simulated data, kenya <- kenyan data)
+# Running the performance checker ('' <- simulated data, 'Kenya' <- kenyan data)
 main(dfParam, true_Param, name)
