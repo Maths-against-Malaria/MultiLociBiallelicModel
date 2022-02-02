@@ -3,7 +3,7 @@
 #                and the estimates of prevalence
 # Created by   : Christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 31.01.22
+# Last modified: 02.02.22
 
 # Importing libraries
 library(wordspace)
@@ -250,9 +250,6 @@ true_prevalence <- function(true_Par, ParTru, name){
     qh_loc[[l]] <- vector(mode = "list", length = NFreq)
     tru_freq <- ParTru[[1]][[l]]
 
-    #for (k in 1:NN){  # For each true sample size
-     # qh_lamb <- vector(mode = "list", length = NFreq)
-
       # Number of haplotypes
       numH <- Hvec[l]
 
@@ -265,10 +262,7 @@ true_prevalence <- function(true_Par, ParTru, name){
       ## For each haplotype in the table, build the set of observation Uh
       nLociUh <- nLoci+1
 
-      #for (j in 1:NLbd){ # For each true Lambda
-       # qh_freq <- vector(mode = "list", length = NFreq)
-
-        for (i in 1:NFreq){ # For each choice of true frequency distribution
+          for (i in 1:NFreq){ # For each choice of true frequency distribution
           rh <- array(0, dim = c(numH, NLbd))
 
           ## For each combination of true lanmbda and haplotype frequencies values
@@ -319,7 +313,6 @@ true_prevalence <- function(true_Par, ParTru, name){
   }
   # Saving the estimates
   saveRDS(qh_loc, file = paste0(path,  "dataset/TruePrevalence", name, ".rds"))
-
   qh_loc
 }
 
@@ -518,8 +511,6 @@ perf_unamb_prevalence <- function(df_Estim, ParTru, true_prev, name){
   saveRDS(qh_loc, file = paste0(path,  "dataset/unambPrevalenceEstimates", name, ".rds"))
   saveRDS(biash_loc, file = paste0(path,  "dataset/biasUnambPrevalence", name, ".rds"))
   saveRDS(coefvar_loc, file = paste0(path,  "dataset/coefvarUnambPrevalence", name, ".rds"))
-
-  coefvar_loc
 }
 
 perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
@@ -554,13 +545,12 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
 
       for (j in 1:NLbd){ # For each true Lambda
         qh_freq <- vector(mode = "list", length = NFreq)
-        biash_prev <- vector(mode = "list", length = NFreq)
+        bias_prev <- vector(mode = "list", length = NFreq)
         coefvar_prev <- vector(mode = "list", length = NFreq)
-
 
         for (i in 1:NFreq){ # For each choice of true frequency distribution
           rh <- rep(0, numH)
-          bias_prev <- rep(0, numH)
+          bias_prevalence <- rep(0, numH)
           coefvar_prevalence <- rep(0, numH)
           tmp_prevalence <- rep(0, NEst)
           tmp_prev <- array(0, dim = c(numH, NEst))
@@ -602,9 +592,7 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
                 tmp_prev[idx,] <- tmp_prev[idx,] + GFreq - GPartFreq
               }
               estim_prev     <- tmp_prev - (nLoci-1)*GPh
-              for (q in 1:NEst){
-                tmp_prevalence[q] <- estim_prev[,q]/sum(estim_prev[,q])
-              }
+              tmp_prevalence <- colMeans(estim_prev)
               rh[idx]        <- mean(tmp_prevalence, na.rm = TRUE)
 
               # Bias
@@ -612,22 +600,24 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
               bias_prev[idx] <- mean(bias, na.rm = TRUE)*100
 
               # Coefficient of variation
+              tmp_prevalence <- tmp_prevalence[!is.na(tmp_prevalence)]
+              print(tmp_prevalence[1:20])
               coefvar_prevalence[idx] <- sd(tmp_prevalence, na.rm = TRUE)/tru_prev[idx,j]
             }else{
               rh[idx]        <- 0
-              bias[idx]      <- 0
+              bias_prevalence[idx]      <- 0
               coefvar_prevalence[idx]  <- 0
             }
           }
 
           ## Save the prevalence in a list
           qh_freq[[i]]    <- rh
-          biash_prev[[i]] <- bias
+          bias_prev[[i]] <- bias_prevalence
           coefvar_prev[[i]] <- coefvar_prevalence
         }
         qh_lamb[[j]]      <- qh_freq
-        biash_lamb[[j]]   <- biash_prev
-        coefvar_lamb[[j]]   <- coefvar_prev
+        biash_lamb[[j]]   <- bias_prev
+        coefvar_lamb[[j]] <- coefvar_prev
       }
       qh_Samp[[k]]        <- qh_lamb
       biash_Samp[[k]]     <- biash_lamb
@@ -639,10 +629,9 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
   }
 
   # Saving the estimates
-  #saveRDS(qh_loc, file = paste0(path,  "dataset/PrevalenceEstimates", name, ".rds"))
-  #saveRDS(biash_loc, file = paste0(path,  "dataset/biasPrevalence", name, ".rds"))
-  #saveRDS(coefvar_loc, file = paste0(path,  "dataset/coefvarPrevalence", name, ".rds"))
-  coefvar_loc
+  saveRDS(qh_loc, file = paste0(path,  "dataset/PrevalenceEstimates", name, ".rds"))
+  saveRDS(biash_loc, file = paste0(path,  "dataset/biasPrevalence", name, ".rds"))
+  saveRDS(coefvar_loc, file = paste0(path,  "dataset/coefvarPrevalence", name, ".rds"))
 }
 
 main <- function(df_Param, true_Par, name){
@@ -650,10 +639,10 @@ main <- function(df_Param, true_Par, name){
   df_Estim <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
 
   # Bias of frequencies and MOI
-  bias(df_Estim, df_Param, name)
+  #bias(df_Estim, df_Param, name)
 
   # Coefficient of variation of MOI
-  coefvar(df_Estim, df_Param, name)
+  #coefvar(df_Estim, df_Param, name)
 
   # True ambiguous prevalence
   tru_AmbPrev   <- true_amb_prevalence(true_Param, name)
@@ -665,10 +654,10 @@ main <- function(df_Param, true_Par, name){
   tru_Prev      <- true_prevalence(true_Param, dfParam, name)
 
   # Estimated ambiguous prevalence
-  perf_amb_prevalence(df_Estim, tru_AmbPrev, name)
+  #perf_amb_prevalence(df_Estim, tru_AmbPrev, name)
 
   # Estimated unambiguous prevalence
-  perf_unamb_prevalence(df_Estim, df_Param, tru_UnambPrev, name)
+  #perf_unamb_prevalence(df_Estim, df_Param, tru_UnambPrev, name)
 
   # Estimated prevalence
   perf_prevalence(df_Estim, df_Param, tru_Prev, name)
@@ -678,7 +667,7 @@ main <- function(df_Param, true_Par, name){
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- ''
+name <- 'Kenya'
 
 # Loading true haplotype frequencies and MOI
 dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
