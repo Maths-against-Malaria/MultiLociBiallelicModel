@@ -2,7 +2,7 @@
 # Objective    : Plot the bias and coefficient of variation of the estimates
 # Created by   : christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 25.12.21
+# Last modified: 02.02.22
 
 # Importing libraries
 library(dplyr)
@@ -191,7 +191,7 @@ main <- function(ParTru, name){
 
   legende1  <- NSamp
 
-  if(1==1){ # Plotting bias for haplotype frequencies
+  if(1==0){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -230,7 +230,55 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias and coefficient of variation for MOI
+  if(1==1){ # Plotting bias for prevalence
+    prev_type <- c('Amb', 'Unamb','Prev')
+    # Importing the data to plot
+    for (typ in prev_type){
+      if (typ == 'Prev'){
+        typdir <- ''
+      }else{
+        typdir <- typ
+      }
+      prevbias <- readRDS(paste0(path, "dataset/bias", typdir, "Prevalence", name, ".rds"))
+
+        for(l in 1:numbloci){ # 2 or 5 loci
+          # Building the frequencies bias dataframe
+          df <- dataframe_builder_Freqperf(prevbias, l)
+          tru_freq <- ParTru[[1]][[l]]
+
+          for(k in 1:NFreq){  # sym or asym
+            trufreq_vec <- tru_freq[k,]
+
+            for(i in 1:Hvec[l]){
+              if(trufreq_vec[i] != 0){
+                for(j in NSamp){
+                  df1 <- df %>%
+                      filter(freq == i, shape == shape_typ[k]) %>%
+                      droplevels()
+                  df1$lbd <- lbdavec
+
+                  p <- ggplot(data = df1, aes(x=lbd))
+                  p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
+                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'Sample')
+                  p <- p + expand_limits(y=0)
+                  p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias prevalence in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
+                  if(name == 'Kenya'){
+                    outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/prevalence/", typ, "/bias_", typ, "_prevalence_", i, "_year_", est_years[k], "_", name, ".pdf")
+                  }else{
+                    outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/prevalence/", typ, "/bias_", typ, "_", shape_typ[k], "_prev_", i, "_nloci_", NLoci[l], "_", name, ".pdf")
+                  }
+                  pdf(outfile, height=5, width=8)
+                  print(p)
+                  dev.off()
+                }
+              }
+            }
+          }
+      }
+    }
+  }
+
+  if(1==0){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -289,7 +337,7 @@ main <- function(ParTru, name){
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- 'Kenya'
+name <- ''
 
 # Importing extra parameters
 parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
