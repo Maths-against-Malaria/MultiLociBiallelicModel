@@ -520,6 +520,7 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
   qh_loc <- vector(mode = "list", length = Nn)
   biash_loc <- vector(mode = "list", length = Nn)
   coefvar_loc <- vector(mode = "list", length = Nn)
+
   for (l in 1:numbloci){   # For each number of locus
     qh_Samp <- vector(mode = "list", length = NN)
     biash_Samp <- vector(mode = "list", length = NN)
@@ -592,7 +593,8 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
                 tmp_prev[idx,] <- tmp_prev[idx,] + GFreq - GPartFreq
               }
               estim_prev     <- tmp_prev - (nLoci-1)*GPh
-              tmp_prevalence <- colMeans(estim_prev)
+              estim_prev[is.na(estim_prev)] <- 0
+              tmp_prevalence <- colMeans(estim_prev, na.rm = TRUE)
               rh[idx]        <- mean(tmp_prevalence, na.rm = TRUE)
 
               # Bias
@@ -601,7 +603,6 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
 
               # Coefficient of variation
               tmp_prevalence <- tmp_prevalence[!is.na(tmp_prevalence)]
-              print(tmp_prevalence[1:20])
               coefvar_prevalence[idx] <- sd(tmp_prevalence, na.rm = TRUE)/tru_prev[idx,j]
             }else{
               rh[idx]        <- 0
