@@ -30,7 +30,7 @@ Nvec <- c(50, 100, 150, 200, 500)
 NN <- length(Nvec)
 
 # Number of estimates generated in the simulation
-NEst <- 100000
+NEst <- 10000
 
 # Number of frequencies set per (number of loci) case
 NFreq <- 2

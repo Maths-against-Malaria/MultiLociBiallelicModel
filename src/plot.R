@@ -190,7 +190,7 @@ main <- function(ParTru, name){
   }
   legende1  <- NSamp
 
-  if(1==1){ # Plotting bias for haplotype frequencies
+  if(1==0){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -325,7 +325,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias and coefficient of variation for MOI
+  if(1==0){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
