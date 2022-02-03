@@ -188,10 +188,9 @@ main <- function(ParTru, name){
       }
     }
   }
-
   legende1  <- NSamp
 
-  if(1==0){ # Plotting bias for haplotype frequencies
+  if(1==1){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -230,7 +229,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting bias for prevalence
+  if(1==1){ # Plotting bias for prevalence
     prev_type <- c('Amb', 'Unamb','Prev')
     # Importing the data to plot
     for (typ in prev_type){
@@ -326,7 +325,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting bias and coefficient of variation for MOI
+  if(1==1){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -385,25 +384,27 @@ main <- function(ParTru, name){
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- 'Kenya'
+namelist <- c('', 'Kenya')
 
-# Importing extra parameters
-parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
-parTrue  <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
+for (name in namelist){
+  # Importing extra parameters
+  parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
+  parTrue  <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-# Running the plots ('' <- simualted data, kenya <- kenyan data)
-NLbd      <- parExtr[[1]]
-Nn        <- parExtr[[2]]
-Hvec      <- parExtr[[3]]
-NN        <- parExtr[[4]]
-NEst      <- parExtr[[5]]
-NFreq     <- parExtr[[6]]
-NLoci     <- log2(Hvec)
-lbdavec   <- parTrue[[2]]
-NSamp     <- parTrue[[3]]
-lbda      <- psi(lbdavec)
-numbloci  <- length(Hvec)
-est_years <- c(2005, 2010)
+  # Running the plots ('' <- simualted data, kenya <- kenyan data)
+  NLbd      <- parExtr[[1]]
+  Nn        <- parExtr[[2]]
+  Hvec      <- parExtr[[3]]
+  NN        <- parExtr[[4]]
+  NEst      <- parExtr[[5]]
+  NFreq     <- parExtr[[6]]
+  NLoci     <- log2(Hvec)
+  lbdavec   <- parTrue[[2]]
+  NSamp     <- parTrue[[3]]
+  lbda      <- psi(lbdavec)
+  numbloci  <- length(Hvec)
+  est_years <- c(2005, 2010)
 
-# Plotting
-main(parTrue, name)
+  # Plotting
+  main(parTrue, name)
+}

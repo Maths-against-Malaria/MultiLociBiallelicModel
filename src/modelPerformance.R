@@ -668,38 +668,40 @@ main <- function(df_Param, true_Par, name){
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin
-name <- 'Kenya'
+namelist <- c('', 'Kenya')
 
-# Loading true haplotype frequencies and MOI
-dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
+for (name in namelist){
+  # Loading true haplotype frequencies and MOI
+  dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-# Loading extra parameters
-parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
+  # Loading extra parameters
+  parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
 
-# Variables initialization
-NLbd          <- parExtr[[1]]
-Nn            <- parExtr[[2]]
-Hvec          <- parExtr[[3]]
-NN            <- parExtr[[4]]
-NEst          <- parExtr[[5]]
-NFreq         <- parExtr[[6]]
-NLoci         <- log2(Hvec)
-mean_moi_true <- psi(dfParam[[2]])
+  # Variables initialization
+  NLbd          <- parExtr[[1]]
+  Nn            <- parExtr[[2]]
+  Hvec          <- parExtr[[3]]
+  NN            <- parExtr[[4]]
+  NEst          <- parExtr[[5]]
+  NFreq         <- parExtr[[6]]
+  NLoci         <- log2(Hvec)
+  mean_moi_true <- psi(dfParam[[2]])
 
-numbloci <- length(Hvec)
+  numbloci <- length(Hvec)
 
-# Reformatting true parameters to compute true prevalence
-true_Param <- vector(mode='list', length=Nn)
+  # Reformatting true parameters to compute true prevalence
+  true_Param <- vector(mode='list', length=Nn)
 
-for (i in 1:Nn){
-  tot_row <- Hvec[i]+1
-  true_Param[[i]] <- vector(mode='list', length=NFreq)
-  for (j in 1:NFreq){
-    true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
-    true_Param[[i]][[j]][1,] <- dfParam[[2]]
-    true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
+  for (i in 1:Nn){
+    tot_row <- Hvec[i]+1
+    true_Param[[i]] <- vector(mode='list', length=NFreq)
+    for (j in 1:NFreq){
+      true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
+      true_Param[[i]][[j]][1,] <- dfParam[[2]]
+      true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
+    }
   }
-}
 
-# Running the performance checker ('' <- simulated data, 'Kenya' <- kenyan data)
-main(dfParam, true_Param, name)
+  # Running the performance checker ('' <- simulated data, 'Kenya' <- kenyan data)
+  main(dfParam, true_Param, name)
+}
