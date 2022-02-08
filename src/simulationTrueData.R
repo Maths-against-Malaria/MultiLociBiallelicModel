@@ -59,7 +59,7 @@ Nvec <- c(50, 100, 150, 200, 500)
 NN <- length(Nvec)
 
 # Number of estimates generated in the simulation
-NEst <- 100000
+NEst <- 10000
 
 # Number of distributions of true frequencies for each number of loci (we remove 2017 estimates)
 NFreq <- length(est_years)-1
@@ -106,7 +106,7 @@ for (i in 1:Nn){
 }
 
 # End of simulation warning
-print("Simulation finished, check your data.")
+print("Simulation finished, save your data.")
 
 # Saving the list for post-processing
 saveRDS(out, file = paste0(path, "dataset/modelEstimates", name, ".rds"))

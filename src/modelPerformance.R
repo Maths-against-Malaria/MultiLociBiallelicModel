@@ -3,7 +3,7 @@
 #                and the estimates of prevalence
 # Created by   : Christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 25.12.21
+# Last modified: 08.02.22
 
 # Importing libraries
 library(wordspace)
@@ -134,14 +134,200 @@ coefvar <- function(df_Estim, df_Param, name){
   saveRDS(moicvloc, file = paste0(path, "dataset/moicv", name, ".rds"))
 }
 
-amb_prevalence <- function(df_Estim, name){
-  # This function implements the ambiguous prevalence as defined in the manuscript
+true_amb_prevalence <- function(true_Par, name){
+  # This function implements the true ambiguous prevalence as defined in the manuscript
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
   # alongside multiplicity of infection from SNPs data"
 
   qh_loc <- vector(mode = "list", length = Nn)
   for (l in 1:numbloci){   # For each number of locus
+  qh_loc[[l]] <- vector(mode = "list", length = NFreq)
+
+    # Number of haplotypes
+    numH <- Hvec[l]
+    numHpo <- Hvec[l] + 1
+
+        for (i in 1:NFreq){ # For each choice of true frequency distribution
+          amb_prevalence <- array(0, dim = c(numH, NLbd))
+
+          # Ambiguous prevalence
+          ## Access each of the 10000 estimates
+          tmp1 <- true_Par[[l]][[i]]
+
+          ## For each set of estimates, compute prevalence
+          for (j in 1:NLbd){
+            amb_prevalence[,j] <- (exp(tmp1[1,j]) - exp(1-tmp1[2:numHpo,j])^tmp1[1,j])/(exp(tmp1[1,j])-1)
+          }
+
+          qh_loc[[l]][[i]] <- amb_prevalence
+        }
+  }
+  # Saving the estimates
+  saveRDS(qh_loc, file = paste0(path, "dataset/TrueAmbPrevalence", name, ".rds"))
+  qh_loc
+}
+
+true_unamb_prevalence <- function(true_Par, ParTru, name){
+ # This function implements the unambiguous prevalence as defined in the manuscript
+ # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
+ 
+  qh_loc <- vector(mode = "list", length = Nn)
+  for (l in 1:numbloci){   # For each number of locus
+    qh_loc[[l]] <- vector(mode = "list", length = NFreq)
+    tru_freq <- ParTru[[1]][[l]]
+
+      # Number of haplotypes
+      numH <- Hvec[l]
+
+      # Number of loci
+      nLoci <- NLoci[l]
+
+      # Table of all possible haplotypes
+      Hapl <- hapl(nLoci)
+
+      ## For each haplotype in the table, build the set of observation Uh
+      nLociUh <- nLoci+1
+
+        for (i in 1:NFreq){ # For each choice of true frequency distribution
+          rh <- array(0, dim = c(numH, NLbd))
+
+          ## For each combination of true lanmbda and haplotype frequencies values
+          tmp1 <- true_Par[[l]][[i]]
+          tmp2 <- tmp1[2:(numH+1),]
+
+          ## For each haplotype build the set Uh for all l
+          trufreq_vec <- tru_freq[i,]
+
+          for (idx in 1:numH){ 
+            if(trufreq_vec[idx] != 0){
+              uh <- t(array(rep(Hapl[idx,], nLoci), dim=c(nLoci, nLociUh)))
+              uh[2:nLociUh,] <- (uh[2:nLociUh,]+diag(nLoci))%%2
+
+              ## Pick the right frequencies estimates 
+              pickh <- which(colSums(uh[1,] == t(Hapl))==nLoci)
+              GPh <- gen_func(tmp2[pickh,], tmp1[1,])
+
+              GPartFreq <- rep(0, NLbd)
+              GFreq <- rep(0, NLbd)
+
+              pick1 <- rep(0, nLociUh)
+              pick2 <- rep(0, nLociUh)
+
+              for(idxUh in 1:nLociUh){ 
+                pick1[idxUh] <- which(colSums(uh[idxUh,] == t(Hapl))==nLoci)
+              }
+
+              pick2 <- pick1
+              pick2[1] <- 0
+
+              for(idxUh in 2:nLociUh){ 
+                GPartFreq <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
+                GFreq <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
+                rh[idx,] <- rh[idx,] + GFreq - GPartFreq
+              }
+                rh[idx,] <- rh[idx,] - (nLoci-1)*GPh
+            }else{
+              rh[idx,] <- 0
+            }
+          }
+          ## Save the prevalence in a list
+          qh_loc[[l]][[i]] <- rh
+        }
+  }
+
+  # Saving the estimates
+  saveRDS(qh_loc, file = paste0(path,  "dataset/TrueUnambPrevalence", name, ".rds"))
+
+  qh_loc
+}
+
+true_prevalence <- function(true_Par, ParTru, name){
+ # This function implements the unambiguous prevalence as defined in the manuscript
+ # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
+ 
+  qh_loc <- vector(mode = "list", length = Nn)
+  for (l in 1:numbloci){   # For each number of locus
+    qh_loc[[l]] <- vector(mode = "list", length = NFreq)
+    tru_freq <- ParTru[[1]][[l]]
+
+      # Number of haplotypes
+      numH <- Hvec[l]
+
+      # Number of loci
+      nLoci <- NLoci[l]
+
+      # Table of all possible haplotypes
+      Hapl <- hapl(nLoci)
+
+      ## For each haplotype in the table, build the set of observation Uh
+      nLociUh <- nLoci+1
+
+          for (i in 1:NFreq){ # For each choice of true frequency distribution
+          rh <- array(0, dim = c(numH, NLbd))
+
+          ## For each combination of true lanmbda and haplotype frequencies values
+          tmp1 <- true_Par[[l]][[i]]
+          tmp2 <- tmp1[2:(numH+1),]
+
+          ## For each haplotype build the set Uh for all l
+          trufreq_vec <- tru_freq[i,]
+
+          for (idx in 1:numH){ 
+            if(trufreq_vec[idx] != 0){
+              uh <- t(array(rep(Hapl[idx,], nLoci), dim=c(nLoci, nLociUh)))
+              uh[2:nLociUh,] <- (uh[2:nLociUh,]+diag(nLoci))%%2
+
+              ## Pick the right frequencies estimates 
+              pickh <- which(colSums(uh[1,] == t(Hapl))==nLoci)
+              GPh <- gen_func(tmp2[pickh,], tmp1[1,])
+
+              GPartFreq <- rep(0, NLbd)
+              GFreq <- rep(0, NLbd)
+
+              pick1 <- rep(0, nLociUh)
+              pick2 <- rep(0, nLociUh)
+
+              for(idxUh in 1:nLociUh){ 
+                pick1[idxUh] <- which(colSums(uh[idxUh,] == t(Hapl))==nLoci)
+              }
+
+              pick2 <- pick1
+              pick2[1] <- 0
+
+              for(idxUh in 2:nLociUh){ 
+                GPartFreq <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
+                GFreq <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
+                rh[idx,] <- rh[idx,] + GFreq - GPartFreq
+              }
+                rh[idx,] <- rh[idx,] - (nLoci-1)*GPh
+            }else{
+              rh[idx,] <- 0
+            }
+          }
+          ## Save the prevalence in a list
+          for (q in 1:NLbd){
+            rh[,q] <- rh[,q]/sum(rh[,q])
+          }
+          qh_loc[[l]][[i]] <- rh
+        }
+  }
+  # Saving the estimates
+  saveRDS(qh_loc, file = paste0(path,  "dataset/TruePrevalence", name, ".rds"))
+  qh_loc
+}
+
+perf_amb_prevalence <- function(df_Estim, true_prev, name){
+  # This function implements the ambiguous prevalence as defined in the manuscript
+  # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
+  # alongside multiplicity of infection from SNPs data"
+
+  qh_loc <- vector(mode = "list", length = Nn)
+  biash_loc <- vector(mode = "list", length = Nn)
+  coefvar_loc <- vector(mode = "list", length = Nn)
+  for (l in 1:numbloci){   # For each number of locus
     qh_Samp <- vector(mode = "list", length = NN)
+    biash_Samp <- vector(mode = "list", length = NN)
+    coefvar_Samp <- vector(mode = "list", length = NN)
 
     # Number of haplotypes
     numH <- Hvec[l]
@@ -149,14 +335,23 @@ amb_prevalence <- function(df_Estim, name){
 
     for (k in 1:NN){  # For each true sample size
       qh_lamb <- vector(mode = "list", length = NFreq)
+      biash_lamb <- vector(mode = "list", length = NFreq)
+      coefvar_lamb <- vector(mode = "list", length = NFreq)
 
       for (j in 1:NLbd){ # For each true Lambda
         qh_freq <- vector(mode = "list", length = NFreq)
+        biash_prev <- vector(mode = "list", length = NFreq)
+        coefvar_prev <- vector(mode = "list", length = NFreq)
 
         for (i in 1:NFreq){ # For each choice of true frequency distribution
           amb_prevalence <- array(0, dim = c(numH, NEst))
+          bias_prevalence <- array(0, dim = c(numH, NEst))
+          coefvar_prevalence <- rep(0, numH)
 
           # Ambiguous prevalence
+          ## True ambiguous prevalence
+          tru_prev <- true_prev[[l]][[i]]
+
           ## Access each of the 10000 estimates
           tmp1 <- df_Estim[[l]][[k]][[j]][, , i]
 
@@ -165,34 +360,59 @@ amb_prevalence <- function(df_Estim, name){
 
           ## Replace entries with NAN values by 0
           amb_prevalence[is.na(amb_prevalence)] <- 0.0
+
+          # Bias
+          bias_prevalence <- (amb_prevalence/tru_prev[,j] - 1)*100
+          bias_prevalence[is.infinite(bias_prevalence)] <- 0.0
+
           qh <- rowMeans(amb_prevalence, na.rm = TRUE)
+          bias_prev <- rowMeans(bias_prevalence, na.rm = TRUE)
+
+          # coefficient of variation
+          for (q in 1:numH){
+            coefvar_prevalence[q] <- sd(amb_prevalence[q,], na.rm = TRUE)/tru_prev[q,j]
+          }
 
           ## Save the prevalence in a list
           qh_freq[[i]] <- qh
+          biash_prev[[i]] <- bias_prev
+          coefvar_prev[[i]] <- coefvar_prevalence
         }
         qh_lamb[[j]] <- qh_freq
+        biash_lamb[[j]] <- biash_prev
+        coefvar_lamb[[j]] <- coefvar_prev
       }
       qh_Samp[[k]] <- qh_lamb
+      biash_Samp[[k]] <- biash_lamb
+      coefvar_Samp[[k]] <- coefvar_lamb
     }
     qh_loc[[l]] <- qh_Samp
+    biash_loc[[l]] <- biash_Samp
+    coefvar_loc[[l]] <- coefvar_Samp
   }
-  qh_loc
-
   # Saving the estimates
   saveRDS(qh_loc, file = paste0(path, "dataset/ambPrevalenceEstimates", name, ".rds"))
+  saveRDS(biash_loc, file = paste0(path, "dataset/biasAmbPrevalence", name, ".rds"))
+  saveRDS(coefvar_loc, file = paste0(path, "dataset/coefvarAmbPrevalence", name, ".rds"))
 }
 
-unamb_prevalence <- function(df_Estim, ParTru, name){
+perf_unamb_prevalence <- function(df_Estim, ParTru, true_prev, name){
  # This function implements the unambiguous prevalence as defined in the manuscript
  # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
  
-  qh_loc <- vector(mode = "list", length = 2)
+  qh_loc <- vector(mode = "list", length = Nn)
+  biash_loc <- vector(mode = "list", length = Nn)
+  coefvar_loc <- vector(mode = "list", length = Nn)
   for (l in 1:numbloci){   # For each number of locus
     qh_Samp <- vector(mode = "list", length = NN)
+    biash_Samp <- vector(mode = "list", length = NN)
+    coefvar_Samp <- vector(mode = "list", length = NN)
     tru_freq <- ParTru[[1]][[l]]
 
     for (k in 1:NN){  # For each true sample size
       qh_lamb <- vector(mode = "list", length = NFreq)
+      biash_lamb <- vector(mode = "list", length = NFreq)
+      coefvar_lamb <- vector(mode = "list", length = NFreq)
 
       # Number of haplotypes
       numH <- Hvec[l]
@@ -208,9 +428,17 @@ unamb_prevalence <- function(df_Estim, ParTru, name){
 
       for (j in 1:NLbd){ # For each true Lambda
         qh_freq <- vector(mode = "list", length = NFreq)
+        biash_prev <- vector(mode = "list", length = NFreq)
+        coefvar_prev <- vector(mode = "list", length = NFreq)
 
         for (i in 1:NFreq){ # For each choice of true frequency distribution
           rh <- rep(0, numH)
+          bias_prev <- rep(0, numH)
+          coefvar_prevalence <- rep(0, numH)
+          tmp_prev <- array(0, dim = c(numH, NEst))
+
+          # True prevalence
+          tru_prev <- true_prev[[l]][[i]]
 
           ## Access each of the 10000 estimates
           tmp1 <- df_Estim[[l]][[k]][[j]][, , i]
@@ -221,15 +449,15 @@ unamb_prevalence <- function(df_Estim, ParTru, name){
 
           for (idx in 1:numH){ 
             if(trufreq_vec[idx] != 0){
-              uh <- t(array(rep(Hapl[idx,], nLoci), dim=c(nLoci, nLociUh)))
+              uh <- t(array(rep(Hapl[idx,], nLoci), dim = c(nLoci, nLociUh)))
               uh[2:nLociUh,] <- (uh[2:nLociUh,]+diag(nLoci))%%2 
 
               ## Pick the right frequencies estimates 
               pickh <- which(colSums(uh[1,] == t(Hapl))==nLoci)
               GPh <- gen_func(tmp2[pickh,], tmp1[1,])
 
-              GPartFreq <- rep(0, 10000)
-              GFreq <- rep(0, 10000)
+              GPartFreq <- rep(0, NEst)
+              GFreq <- rep(0, NEst)
 
               pick1 <- rep(0, nLociUh)
               pick2 <- rep(0, nLociUh)
@@ -237,46 +465,72 @@ unamb_prevalence <- function(df_Estim, ParTru, name){
               for(idxUh in 1:nLociUh){ 
                 pick1[idxUh] <- which(colSums(uh[idxUh,] == t(Hapl))==nLoci)
               }
-
               pick2 <- pick1
               pick2[1] <- 0
 
               for(idxUh in 2:nLociUh){ 
-                GPartFreq <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
-                GFreq <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
-                rh[idx] <- rh[idx] + mean(GFreq - GPartFreq, na.rm = TRUE)
+                GPartFreq      <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
+                GFreq          <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
+                tmp_prev[idx,] <- tmp_prev[idx,] + GFreq - GPartFreq
               }
-              rh[idx] <- rh[idx] - (nLoci-1)*mean(GPh, na.rm = TRUE)
+              estim_prev     <- tmp_prev[idx,] - (nLoci-1)*GPh
+              rh[idx]        <- mean(estim_prev, na.rm = TRUE)
+
+              # Bias
+              bias           <- estim_prev/tru_prev[idx,j] - 1
+              bias_prev[idx] <- mean(bias, na.rm = TRUE)*100
+
+              # Coefficient of variation
+              coefvar_prevalence[idx] <- sd(estim_prev, na.rm = TRUE)/tru_prev[idx,j]
+
             }else{
-              rh[idx] <- 0
+              rh[idx]        <- 0
+              bias_prev[idx] <- 0
+              coefvar_prevalence[idx] <- 0
             }
           }
           ## Save the prevalence in a list
-          qh_freq[[i]] <- rh
+          qh_freq[[i]]    <- rh
+          biash_prev[[i]] <- bias_prev
+          coefvar_prev[[i]] <- coefvar_prevalence
         }
-        qh_lamb[[j]] <- qh_freq
+        qh_lamb[[j]]      <- qh_freq
+        biash_lamb[[j]]   <- biash_prev
+        coefvar_lamb[[j]]   <- coefvar_prev
       }
-      qh_Samp[[k]] <- qh_lamb
+      qh_Samp[[k]]        <- qh_lamb
+      biash_Samp[[k]]     <- biash_lamb
+      coefvar_Samp[[k]]     <- coefvar_lamb
     }
-    qh_loc[[l]] <- qh_Samp
+    qh_loc[[l]]    <- qh_Samp
+    biash_loc[[l]] <- biash_Samp
+    coefvar_loc[[l]] <- coefvar_Samp
   }
-  qh_loc
 
   # Saving the estimates
   saveRDS(qh_loc, file = paste0(path,  "dataset/unambPrevalenceEstimates", name, ".rds"))
+  saveRDS(biash_loc, file = paste0(path,  "dataset/biasUnambPrevalence", name, ".rds"))
+  saveRDS(coefvar_loc, file = paste0(path,  "dataset/coefvarUnambPrevalence", name, ".rds"))
 }
 
-prevalence <- function(df_Estim, ParTru, name){
- # This function implements the prevalence as defined in the manuscript
+perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
+ # This function implements the unambiguous prevalence as defined in the manuscript
  # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
  
-  qh_loc <- vector(mode = "list", length = 2)
+  qh_loc <- vector(mode = "list", length = Nn)
+  biash_loc <- vector(mode = "list", length = Nn)
+  coefvar_loc <- vector(mode = "list", length = Nn)
+
   for (l in 1:numbloci){   # For each number of locus
     qh_Samp <- vector(mode = "list", length = NN)
+    biash_Samp <- vector(mode = "list", length = NN)
+    coefvar_Samp <- vector(mode = "list", length = NN)
     tru_freq <- ParTru[[1]][[l]]
 
     for (k in 1:NN){  # For each true sample size
       qh_lamb <- vector(mode = "list", length = NFreq)
+      biash_lamb <- vector(mode = "list", length = NFreq)
+      coefvar_lamb <- vector(mode = "list", length = NFreq)
 
       # Number of haplotypes
       numH <- Hvec[l]
@@ -292,9 +546,19 @@ prevalence <- function(df_Estim, ParTru, name){
 
       for (j in 1:NLbd){ # For each true Lambda
         qh_freq <- vector(mode = "list", length = NFreq)
+        bias_prev <- vector(mode = "list", length = NFreq)
+        coefvar_prev <- vector(mode = "list", length = NFreq)
 
         for (i in 1:NFreq){ # For each choice of true frequency distribution
-          rh <- rep(0, numH)
+          rh   <- array(0, dim = c(numH, NEst))
+          prev <- array(0, dim = c(numH, NEst))
+          prevalence <- rep(0, numH)
+          bias_prevalence <- rep(0, numH)
+          coefvar_prevalence <- rep(0, numH)
+          tmp_prev <- array(0, dim = c(numH, NEst))
+
+          # True prevalence
+          tru_prev <- true_prev[[l]][[i]]
 
           ## Access each of the 10000 estimates
           tmp1 <- df_Estim[[l]][[k]][[j]][, , i]
@@ -303,17 +567,18 @@ prevalence <- function(df_Estim, ParTru, name){
           ## For each haplotype build the set Uh for all l
           trufreq_vec <- tru_freq[i,]
 
+          # Find ambiguous prevalence for each haplotype
           for (idx in 1:numH){ 
             if(trufreq_vec[idx] != 0){
-              uh <- t(array(rep(Hapl[idx,], nLoci), dim=c(nLoci, nLociUh)))
+              uh <- t(array(rep(Hapl[idx,], nLoci), dim = c(nLoci, nLociUh)))
               uh[2:nLociUh,] <- (uh[2:nLociUh,]+diag(nLoci))%%2 
 
               ## Pick the right frequencies estimates 
               pickh <- which(colSums(uh[1,] == t(Hapl))==nLoci)
               GPh <- gen_func(tmp2[pickh,], tmp1[1,])
 
-              GPartFreq <- rep(0, 10000)
-              GFreq <- rep(0, 10000)
+              GPartFreq <- rep(0, NEst)
+              GFreq <- rep(0, NEst)
 
               pick1 <- rep(0, nLociUh)
               pick2 <- rep(0, nLociUh)
@@ -321,38 +586,66 @@ prevalence <- function(df_Estim, ParTru, name){
               for(idxUh in 1:nLociUh){ 
                 pick1[idxUh] <- which(colSums(uh[idxUh,] == t(Hapl))==nLoci)
               }
-
               pick2 <- pick1
               pick2[1] <- 0
 
               for(idxUh in 2:nLociUh){ 
-                GPartFreq <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
-                GFreq <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
-                rh[idx] <- rh[idx] + mean(GFreq - GPartFreq, na.rm = TRUE)
+                GPartFreq      <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
+                GFreq          <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
+                tmp_prev[idx,] <- tmp_prev[idx,] + GFreq - GPartFreq
               }
-              rh[idx] <- rh[idx] - (nLoci-1)*mean(GPh, na.rm = TRUE)
+              estim_prev      <- tmp_prev[idx,] - (nLoci-1)*GPh
+              estim_prev[is.na(estim_prev)] <- 0
+              rh[idx,]        <- estim_prev
             }else{
-              rh[idx] <- 0
+              rh[idx,]        <- 0
             }
           }
+
+          # Full table for relative prevalence
+          prev_sum <- colSums(rh)
+          for (q in 1:NEst){
+            prev[,q] <- rh[,q]/prev_sum[q]
+          }
+          
+          for (q in 1:numH){
+            # Relative prevalence
+            prevalence[q] <- mean(prev[q,], na.rm = TRUE)
+
+            # Bias
+            bias <- prev[q,]/tru_prev[q,j] - 1
+            bias_prevalence[q] <- mean(bias, na.rm = TRUE)*100
+
+            # Coefficient of variation
+            coefvar_prevalence[q] <- sd(prev[q,], na.rm = TRUE)/tru_prev[q,j]
+          }
+  
           ## Save the prevalence in a list
-          rh <- rh/sum(rh)
-          qh_freq[[i]] <- rh
+          qh_freq[[i]]      <- prevalence
+          bias_prev[[i]]    <- bias_prevalence
+          coefvar_prev[[i]] <- coefvar_prevalence
         }
-        qh_lamb[[j]] <- qh_freq
+        qh_lamb[[j]]      <- qh_freq
+        biash_lamb[[j]]   <- bias_prev
+        coefvar_lamb[[j]] <- coefvar_prev
       }
-      qh_Samp[[k]] <- qh_lamb
+      qh_Samp[[k]]        <- qh_lamb
+      biash_Samp[[k]]     <- biash_lamb
+      coefvar_Samp[[k]]   <- coefvar_lamb
     }
-    qh_loc[[l]] <- qh_Samp
+    qh_loc[[l]]      <- qh_Samp
+    biash_loc[[l]]   <- biash_Samp
+    coefvar_loc[[l]] <- coefvar_Samp
   }
-  qh_loc
 
   # Saving the estimates
-  saveRDS(qh_loc, file = paste0(path, "dataset/prevalenceEstimates", name,".rds"))
+  saveRDS(qh_loc, file = paste0(path,  "dataset/PrevalenceEstimates", name, ".rds"))
+  saveRDS(biash_loc, file = paste0(path,  "dataset/biasPrevalence", name, ".rds"))
+  saveRDS(coefvar_loc, file = paste0(path,  "dataset/coefvarPrevalence", name, ".rds"))
 }
 
-main <- function(df_Param, name){
-  # Loading true haplotype frequencies and MOI
+main <- function(df_Param, true_Par, name){
+  # Loading estimated haplotype frequencies and MOI
   df_Estim <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
 
   # Bias of frequencies and MOI
@@ -361,38 +654,62 @@ main <- function(df_Param, name){
   # Coefficient of variation of MOI
   coefvar(df_Estim, df_Param, name)
 
-  # Ambiguous prevalence
-  amb_prevalence(df_Estim, name)
+  # True ambiguous prevalence
+  tru_AmbPrev   <- true_amb_prevalence(true_Par, name)
 
-  # Unambiguous prevalence
-  unamb_prevalence(df_Estim, df_Param, name)
+  # True unambiguous prevalence
+  tru_UnambPrev <- true_unamb_prevalence(true_Par, df_Param, name)
 
-  # Prevalence
-  prevalence(df_Estim, df_Param, name)
+  # True prevalence
+  tru_Prev      <- true_prevalence(true_Par, df_Param, name)
+
+  # Estimated ambiguous prevalence
+  perf_amb_prevalence(df_Estim, tru_AmbPrev, name)
+
+  # Estimated unambiguous prevalence
+  perf_unamb_prevalence(df_Estim, df_Param, tru_UnambPrev, name)
+
+  # Estimated prevalence
+  perf_prevalence(df_Estim, df_Param, tru_Prev, name)
 }
 
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
-# Define data origin
-name <- ''
+# Define data origin ('' <- simulated data, 'Kenya' <- kenyan data)
+namelist <- c('', 'Kenya')
 
-# Loading true haplotype frequencies and MOI
-dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
+for (name in namelist){
+  print(paste0('Ongoing simulation for: ', name, ' data!'))
+  # Loading true haplotype frequencies and MOI
+  dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-# Loading extra parameters
-parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
+  # Loading extra parameters
+  parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
 
-# Variables initialization
-NLbd          <- parExtr[[1]]
-Nn            <- parExtr[[2]]
-Hvec          <- parExtr[[3]]
-NN            <- parExtr[[4]]
-NEst          <- parExtr[[5]]
-NFreq         <- parExtr[[6]]
-NLoci         <- log2(Hvec)
-mean_moi_true <- psi(dfParam[[2]])
+  # Variables initialization
+  NLbd          <- parExtr[[1]]
+  Nn            <- parExtr[[2]]
+  Hvec          <- parExtr[[3]]
+  NN            <- parExtr[[4]]
+  NEst          <- parExtr[[5]]
+  NFreq         <- parExtr[[6]]
+  NLoci         <- log2(Hvec)
+  mean_moi_true <- psi(dfParam[[2]])
+  numbloci      <- length(Hvec)
 
-numbloci <- length(Hvec)
+  # Reformatting true parameters to compute true prevalence
+  true_Param <- vector(mode='list', length=Nn)
 
-# Running the performance checker ('' <- simulated data, kenya <- kenyan data)
-main(dfParam, name)
+  for (i in 1:Nn){
+    tot_row <- Hvec[i]+1
+    true_Param[[i]] <- vector(mode='list', length=NFreq)
+
+    for (j in 1:NFreq){
+      true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
+      true_Param[[i]][[j]][1,] <- dfParam[[2]]
+      true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
+    }
+  }
+
+  main(dfParam, true_Param, name)
+}

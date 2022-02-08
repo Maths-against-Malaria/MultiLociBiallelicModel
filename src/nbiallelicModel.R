@@ -1,5 +1,5 @@
 # Title        : Model
-# Objective    : IMplementation of the mddel (EM-algorithm)
+# Objective    : Implementation of the model (EM-algorithm)
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 03.04.21
 # Last modified: 22.12.21
