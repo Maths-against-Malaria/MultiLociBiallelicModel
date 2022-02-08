@@ -610,7 +610,7 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
           
           for (q in 1:numH){
             # Relative prevalence
-            prevalence[q] <- mean(prev[,q], na.rm = TRUE)
+            prevalence[q] <- mean(prev[q,], na.rm = TRUE)
 
             # Bias
             bias <- prev[q,]/tru_prev[q,j] - 1
@@ -621,8 +621,8 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
           }
   
           ## Save the prevalence in a list
-          qh_freq[[i]]    <- prevalence
-          bias_prev[[i]] <- bias_prevalence
+          qh_freq[[i]]      <- prevalence
+          bias_prev[[i]]    <- bias_prevalence
           coefvar_prev[[i]] <- coefvar_prevalence
         }
         qh_lamb[[j]]      <- qh_freq
@@ -631,10 +631,10 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
       }
       qh_Samp[[k]]        <- qh_lamb
       biash_Samp[[k]]     <- biash_lamb
-      coefvar_Samp[[k]]     <- coefvar_lamb
+      coefvar_Samp[[k]]   <- coefvar_lamb
     }
-    qh_loc[[l]]    <- qh_Samp
-    biash_loc[[l]] <- biash_Samp
+    qh_loc[[l]]      <- qh_Samp
+    biash_loc[[l]]   <- biash_Samp
     coefvar_loc[[l]] <- coefvar_Samp
   }
 
@@ -655,13 +655,13 @@ main <- function(df_Param, true_Par, name){
   #coefvar(df_Estim, df_Param, name)
 
   # True ambiguous prevalence
-  tru_AmbPrev   <- true_amb_prevalence(true_Param, name)
+  #tru_AmbPrev   <- true_amb_prevalence(true_Par, name)
 
   # True unambiguous prevalence
-  tru_UnambPrev <- true_unamb_prevalence(true_Param, dfParam, name)
+  #tru_UnambPrev <- true_unamb_prevalence(true_Par, df_Param, name)
 
   # True prevalence
-  tru_Prev      <- true_prevalence(true_Param, dfParam, name)
+  tru_Prev      <- true_prevalence(true_Par, df_Param, name)
 
   # Estimated ambiguous prevalence
   #perf_amb_prevalence(df_Estim, tru_AmbPrev, name)
@@ -671,47 +671,44 @@ main <- function(df_Param, true_Par, name){
 
   # Estimated prevalence
   perf_prevalence(df_Estim, df_Param, tru_Prev, name)
-
 }
 
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
-# Define data origin
+# Define data origin ('' <- simulated data, 'Kenya' <- kenyan data)
 namelist <- c('', 'Kenya')
 
 for (name in namelist){
+  # Loading true haplotype frequencies and MOI
+  dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-# Loading true haplotype frequencies and MOI
-dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
+  # Loading extra parameters
+  parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
 
-# Loading extra parameters
-parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
+  # Variables initialization
+  NLbd          <- parExtr[[1]]
+  Nn            <- parExtr[[2]]
+  Hvec          <- parExtr[[3]]
+  NN            <- parExtr[[4]]
+  NEst          <- parExtr[[5]]
+  NFreq         <- parExtr[[6]]
+  NLoci         <- log2(Hvec)
+  mean_moi_true <- psi(dfParam[[2]])
+  numbloci      <- length(Hvec)
 
-# Variables initialization
-NLbd          <- parExtr[[1]]
-Nn            <- parExtr[[2]]
-Hvec          <- parExtr[[3]]
-NN            <- parExtr[[4]]
-NEst          <- parExtr[[5]]
-NFreq         <- parExtr[[6]]
-NLoci         <- log2(Hvec)
-mean_moi_true <- psi(dfParam[[2]])
+  # Reformatting true parameters to compute true prevalence
+  true_Param <- vector(mode='list', length=Nn)
 
-numbloci <- length(Hvec)
+  for (i in 1:Nn){
+    tot_row <- Hvec[i]+1
+    true_Param[[i]] <- vector(mode='list', length=NFreq)
 
-# Reformatting true parameters to compute true prevalence
-true_Param <- vector(mode='list', length=Nn)
-
-for (i in 1:Nn){
-  tot_row <- Hvec[i]+1
-  true_Param[[i]] <- vector(mode='list', length=NFreq)
-  for (j in 1:NFreq){
-    true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
-    true_Param[[i]][[j]][1,] <- dfParam[[2]]
-    true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
+    for (j in 1:NFreq){
+      true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
+      true_Param[[i]][[j]][1,] <- dfParam[[2]]
+      true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
+    }
   }
-}
 
-# Running the performance checker ('' <- simulated data, 'Kenya' <- kenyan data)
-main(dfParam, true_Param, name)
+  main(dfParam, true_Param, name)
 }

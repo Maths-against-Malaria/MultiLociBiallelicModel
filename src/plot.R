@@ -2,7 +2,7 @@
 # Objective    : Plot the bias and coefficient of variation of the estimates
 # Created by   : christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 02.02.22
+# Last modified: 08.02.22
 
 # Importing libraries
 library(dplyr)
@@ -133,7 +133,7 @@ main <- function(ParTru, name){
 
   if(name=="Kenya"){
     dir        <- 'DD'
-    shape_typ2 <- ''
+    shape_typ <- c('')
   }else{
     dir        <- 'SD'
   }
@@ -162,6 +162,7 @@ main <- function(ParTru, name){
 
       for(k in 1:NFreq){  # sym or asym
         trufreq_vec <- tru_freq[k,]
+
         for(i in 1:Hvec[l]){
           if(trufreq_vec[i] != 0){
               for(j in NSamp){
@@ -229,7 +230,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias for prevalence
+  if(1==0){ # Plotting bias for prevalence
     prev_type <- c('Amb', 'Unamb','Prev')
     # Importing the data to plot
     for (typ in prev_type){
@@ -277,7 +278,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting coef of variation for prevalence
+  if(1==0){ # Plotting coef of variation for prevalence
     prev_type <- c('Amb', 'Unamb','Prev')
     # Importing the data to plot
     for (typ in prev_type){
@@ -383,7 +384,7 @@ main <- function(ParTru, name){
 
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
-# Define data origin
+# Define data origin ('' <- simualted data, kenya <- kenyan data)
 namelist <- c('', 'Kenya')
 
 for (name in namelist){
@@ -391,7 +392,6 @@ for (name in namelist){
   parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
   parTrue  <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-  # Running the plots ('' <- simualted data, kenya <- kenyan data)
   NLbd      <- parExtr[[1]]
   Nn        <- parExtr[[2]]
   Hvec      <- parExtr[[3]]
