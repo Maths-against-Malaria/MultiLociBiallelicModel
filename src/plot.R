@@ -82,9 +82,7 @@ dataframe_builder_prev <- function(prev_estim, type_prev, locNumb, true_prev){
   for (l in 1:NFreq){
     for (k in 1:length(NSamp)) {
       for (j in 1:NLbd){
-        #for (i in 1:Hvec[locNumb]){
-          exp_prev <- c(exp_prev, true_prev[[locNumb]][[l]][,j])
-        #}
+        exp_prev <- c(exp_prev, true_prev[[locNumb]][[l]][,j])
       }
     }
   }

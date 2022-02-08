@@ -317,7 +317,7 @@ true_prevalence <- function(true_Par, ParTru, name){
 }
 
 perf_amb_prevalence <- function(df_Estim, true_prev, name){
-  # This function implements the ambiguous prevalence as defined in the manuscript
+  # This function implements the ambiguous prevalence and its performance as defined in the manuscript
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
   # alongside multiplicity of infection from SNPs data"
 
@@ -397,8 +397,9 @@ perf_amb_prevalence <- function(df_Estim, true_prev, name){
 }
 
 perf_unamb_prevalence <- function(df_Estim, ParTru, true_prev, name){
- # This function implements the unambiguous prevalence as defined in the manuscript
- # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
+ # This function implements the unambiguous prevalence and its performance as defined in the manuscript
+ # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity
+ # of infection from SNPs data"
  
   qh_loc <- vector(mode = "list", length = Nn)
   biash_loc <- vector(mode = "list", length = Nn)
@@ -514,8 +515,9 @@ perf_unamb_prevalence <- function(df_Estim, ParTru, true_prev, name){
 }
 
 perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
- # This function implements the unambiguous prevalence as defined in the manuscript
- # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
+ # This function implements the relative prevalence as defined in the manuscript
+ # "A maximum-likelihood method to estimate haplotype frequencies and prevalence 
+ # alongside multiplicity of infection from SNPs data"
  
   qh_loc <- vector(mode = "list", length = Nn)
   biash_loc <- vector(mode = "list", length = Nn)
