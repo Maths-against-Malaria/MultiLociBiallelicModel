@@ -3,7 +3,7 @@
 #                and the estimates of prevalence
 # Created by   : Christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 02.02.22
+# Last modified: 08.02.22
 
 # Importing libraries
 library(wordspace)
@@ -550,10 +550,11 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
         coefvar_prev <- vector(mode = "list", length = NFreq)
 
         for (i in 1:NFreq){ # For each choice of true frequency distribution
-          rh <- rep(0, numH)
+          rh   <- array(0, dim = c(numH, NEst))
+          prev <- array(0, dim = c(numH, NEst))
+          prevalence <- rep(0, numH)
           bias_prevalence <- rep(0, numH)
           coefvar_prevalence <- rep(0, numH)
-          tmp_prevalence <- rep(0, NEst)
           tmp_prev <- array(0, dim = c(numH, NEst))
 
           # True prevalence
@@ -566,6 +567,7 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
           ## For each haplotype build the set Uh for all l
           trufreq_vec <- tru_freq[i,]
 
+          # Find ambiguous prevalence for each haplotype
           for (idx in 1:numH){ 
             if(trufreq_vec[idx] != 0){
               uh <- t(array(rep(Hapl[idx,], nLoci), dim = c(nLoci, nLociUh)))
@@ -592,27 +594,34 @@ perf_prevalence <- function(df_Estim, ParTru, true_prev, name){
                 GFreq          <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
                 tmp_prev[idx,] <- tmp_prev[idx,] + GFreq - GPartFreq
               }
-              estim_prev     <- tmp_prev - (nLoci-1)*GPh
+              estim_prev      <- tmp_prev[idx,] - (nLoci-1)*GPh
               estim_prev[is.na(estim_prev)] <- 0
-              tmp_prevalence <- colMeans(estim_prev, na.rm = TRUE)
-              rh[idx]        <- mean(tmp_prevalence, na.rm = TRUE)
-
-              # Bias
-              bias <- tmp_prevalence/tru_prev[idx,j] - 1
-              bias_prev[idx] <- mean(bias, na.rm = TRUE)*100
-
-              # Coefficient of variation
-              tmp_prevalence <- tmp_prevalence[!is.na(tmp_prevalence)]
-              coefvar_prevalence[idx] <- sd(tmp_prevalence, na.rm = TRUE)/tru_prev[idx,j]
+              rh[idx,]        <- estim_prev
             }else{
-              rh[idx]        <- 0
-              bias_prevalence[idx]      <- 0
-              coefvar_prevalence[idx]  <- 0
+              rh[idx,]        <- 0
             }
           }
 
+          # Full table for relative prevalence
+          prev_sum <- colSums(rh)
+          for (q in 1:NEst){
+            prev[,q] <- rh[,q]/prev_sum[q]
+          }
+          
+          for (q in 1:numH){
+            # Relative prevalence
+            prevalence[q] <- mean(prev[,q], na.rm = TRUE)
+
+            # Bias
+            bias <- prev[q,]/tru_prev[q,j] - 1
+            bias_prevalence[q] <- mean(bias, na.rm = TRUE)*100
+
+            # Coefficient of variation
+            coefvar_prevalence[q] <- sd(prev[q,], na.rm = TRUE)/tru_prev[q,j]
+          }
+  
           ## Save the prevalence in a list
-          qh_freq[[i]]    <- rh
+          qh_freq[[i]]    <- prevalence
           bias_prev[[i]] <- bias_prevalence
           coefvar_prev[[i]] <- coefvar_prevalence
         }
@@ -671,37 +680,38 @@ path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malar
 namelist <- c('', 'Kenya')
 
 for (name in namelist){
-  # Loading true haplotype frequencies and MOI
-  dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-  # Loading extra parameters
-  parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
+# Loading true haplotype frequencies and MOI
+dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
-  # Variables initialization
-  NLbd          <- parExtr[[1]]
-  Nn            <- parExtr[[2]]
-  Hvec          <- parExtr[[3]]
-  NN            <- parExtr[[4]]
-  NEst          <- parExtr[[5]]
-  NFreq         <- parExtr[[6]]
-  NLoci         <- log2(Hvec)
-  mean_moi_true <- psi(dfParam[[2]])
+# Loading extra parameters
+parExtr  <- readRDS(paste0(path, "dataset/extraParameters", name, ".rds"))
 
-  numbloci <- length(Hvec)
+# Variables initialization
+NLbd          <- parExtr[[1]]
+Nn            <- parExtr[[2]]
+Hvec          <- parExtr[[3]]
+NN            <- parExtr[[4]]
+NEst          <- parExtr[[5]]
+NFreq         <- parExtr[[6]]
+NLoci         <- log2(Hvec)
+mean_moi_true <- psi(dfParam[[2]])
 
-  # Reformatting true parameters to compute true prevalence
-  true_Param <- vector(mode='list', length=Nn)
+numbloci <- length(Hvec)
 
-  for (i in 1:Nn){
-    tot_row <- Hvec[i]+1
-    true_Param[[i]] <- vector(mode='list', length=NFreq)
-    for (j in 1:NFreq){
-      true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
-      true_Param[[i]][[j]][1,] <- dfParam[[2]]
-      true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
-    }
+# Reformatting true parameters to compute true prevalence
+true_Param <- vector(mode='list', length=Nn)
+
+for (i in 1:Nn){
+  tot_row <- Hvec[i]+1
+  true_Param[[i]] <- vector(mode='list', length=NFreq)
+  for (j in 1:NFreq){
+    true_Param[[i]][[j]] <- array(0, c(tot_row, NLbd))
+    true_Param[[i]][[j]][1,] <- dfParam[[2]]
+    true_Param[[i]][[j]][2:tot_row,] <- dfParam[[1]][[i]][j,]
   }
+}
 
-  # Running the performance checker ('' <- simulated data, 'Kenya' <- kenyan data)
-  main(dfParam, true_Param, name)
+# Running the performance checker ('' <- simulated data, 'Kenya' <- kenyan data)
+main(dfParam, true_Param, name)
 }
