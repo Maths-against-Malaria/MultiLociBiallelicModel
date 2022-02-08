@@ -165,6 +165,7 @@ main <- function(ParTru, name){
   # Color palette (color-blind friendly) for the plots
   cbPalette <- c(rgb(0,0,0), rgb(.35, .70, .90), rgb(.90,.60,0), rgb(0,.60,.50), rgb(0,.45,.70), rgb(.80,.40,0), rgb(.5, .5, .5))
   lty <- c("dashed", "solid")
+  legende2 <- c('estimate', 'true')
 
   if(1==1){ # Plotting prevalence
     # Importing the data to plot
@@ -178,7 +179,7 @@ main <- function(ParTru, name){
 
     # Plots parameters
     legende1 <- c('ambiguous', 'unambiguous', 'relative')
-    legende2 <- c('estimate', 'true')
+    #legende2 <- c('estimate', 'true')
 
     for(l in 1:numbloci){ # 2 or 5 loci
       # Building the prevalence dataframe
@@ -222,6 +223,7 @@ main <- function(ParTru, name){
     }
   }
   legende1  <- NSamp
+  
 
   if(1==1){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
@@ -244,7 +246,7 @@ main <- function(ParTru, name){
 
                 p <- ggplot(data = df1, aes(x=lbd))
                 p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-                p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
+                p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
                 p <- p + expand_limits(y=0)
                 p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias frequencies in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                 if(name == 'Kenya'){
@@ -291,7 +293,7 @@ main <- function(ParTru, name){
 
                   p <- ggplot(data = df1, aes(x=lbd))
                   p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
+                  p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
                   p <- p + expand_limits(y=0)
                   p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias prevalence in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                   if(name == 'Kenya'){
@@ -339,7 +341,7 @@ main <- function(ParTru, name){
 
                   p <- ggplot(data = df1, aes(x=lbd))
                   p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
+                  p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
                   p <- p + expand_limits(y=0)
                   p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('coef. var. prevalence'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                   if(name == 'Kenya'){
@@ -379,7 +381,7 @@ main <- function(ParTru, name){
 
           p <- ggplot(data = df1, aes(x=lbd))
           p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-          p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
+          p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
           p <- p + expand_limits(y=0)
           p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias MOI in %'))
           if(name == 'Kenya'){
@@ -398,7 +400,7 @@ main <- function(ParTru, name){
 
           p <- ggplot(data = df2, aes(x=lbd))
           p <- p + geom_line(aes(y = df2[,'bias'], color = sample), size=1.)
-          p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
+          p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
           p <- p + expand_limits(y=0)
           p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Coef. variation MOI'))
            if(name == 'Kenya'){
