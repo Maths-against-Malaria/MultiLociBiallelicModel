@@ -179,7 +179,6 @@ main <- function(ParTru, name){
 
     # Plots parameters
     legende1 <- c('ambiguous', 'unambiguous', 'relative')
-    #legende2 <- c('estimate', 'true')
 
     for(l in 1:numbloci){ # 2 or 5 loci
       # Building the prevalence dataframe
