@@ -9,7 +9,7 @@ library(dplyr)
 library(ggplot2)
 
 # Functions
-beautify <- function (p, legende, pos, colpal, linety, name){
+beautify <- function (p, legende1, legende2, pos, colpal, linety, name, form){
   p <- p + theme(panel.grid.minor = element_blank(),panel.grid=element_blank())
   p <- p + theme(panel.grid.major = element_blank(),panel.grid=element_blank())
   p <- p + theme(panel.grid.minor.y=element_blank(),panel.grid.major.y=element_blank())
@@ -23,10 +23,10 @@ beautify <- function (p, legende, pos, colpal, linety, name){
   # Legend
   p <- p + theme(legend.key=element_blank(), legend.text.align = 0, legend.background = element_blank())
   p <- p + theme(legend.key=element_blank(), legend.text.align = 0, legend.position = pos, legend.background = element_blank())
-  p <- p + scale_linetype_manual(values=linety, labels=Ilab <-  legende, guide = guide_legend(title = "none"))
-  p <- p + scale_colour_manual(values=colpal, labels=Ilab <-  legende, guide = guide_legend(title = name))
+  p <- p + scale_linetype_manual(values=linety, labels=Ilab <-  legende2, guide = guide_legend(title = NULL))
+  p <- p + scale_colour_manual(values=colpal, labels=Ilab <-  legende1, guide = guide_legend(title = NULL))
   p <- p + theme(legend.text = element_text(size = rel(2.2)))
-  p <- p + theme(legend.title = element_text(size = rel(1.5),face="italic"), legend.margin = margin(t = 10, b = 0.1))
+  p <- p + theme(legend.title = element_text(size = rel(1.8),face=form), legend.margin = margin(t = 1, b = 0.01))
   p <- p + theme(legend.key.width = unit(9.5,"mm"))
 
   # Axis
@@ -44,7 +44,7 @@ psi <- function (inp){
   inp / (1 - exp(-inp))
 }
 
-dataframe_builder_prev <- function(prev_estim, name, locNumb){
+dataframe_builder_prev <- function(prev_estim, type_prev, locNumb, true_prev){
   NRow <- length(NSamp)*length(lbdavec)*NFreq*Hvec[locNumb] 
 
   cnames <- c('prev', 'sample', 'freq', 'shape')
@@ -66,10 +66,35 @@ dataframe_builder_prev <- function(prev_estim, name, locNumb){
       }
     }
   }
-
   df1[,'prev'] <- exp_prev
-  df1$type <- as.factor(name)
-  df1
+  df1$type <- as.factor(type_prev)
+  df1$vers <- as.factor('estimate')
+
+  df2 <- array(0, dim = c(NRow, length(cnames)))
+  df2 <- as.data.frame(df2)
+  colnames(df2) <- cnames
+  samp_vec <- rep(NSamp, each=NRow/(length(NSamp)*NFreq))
+  df2[,'sample'] <- as.factor(rep(samp_vec, NFreq))
+  df2[,'freq']   <- as.factor(rep(1:Hvec[locNumb], NRow/(length(lbdavec)*Hvec[locNumb])))
+  df2[,'shape']  <- as.factor(rep(c("sym", "asym"), each=NRow/NFreq))
+
+  exp_prev <- c()
+  for (l in 1:NFreq){
+    for (k in 1:length(NSamp)) {
+      for (j in 1:NLbd){
+        #for (i in 1:Hvec[locNumb]){
+          exp_prev <- c(exp_prev, true_prev[[locNumb]][[l]][,j])
+        #}
+      }
+    }
+  }
+
+  df2[,'prev'] <- exp_prev
+  df2$type <- as.factor(type_prev)
+  df2$vers <- as.factor('true')
+
+  df <- rbind(df1, df2)
+  df
 }
 
 dataframe_builder_Freqperf <- function(perf_estim, locNumb){
@@ -133,7 +158,6 @@ main <- function(ParTru, name){
 
   if(name=="Kenya"){
     dir        <- 'DD'
-    shape_typ <- c('')
   }else{
     dir        <- 'SD'
   }
@@ -148,14 +172,19 @@ main <- function(ParTru, name){
     unamb_prev <- readRDS(paste0(path, "dataset/unambPrevalenceEstimates", name, ".rds"))
     prev       <- readRDS(paste0(path, "dataset/prevalenceEstimates", name, ".rds"))
 
+    true_amb_prev <- readRDS(paste0(path, "dataset/TrueAmbPrevalence", name, ".rds"))
+    true_unamb_prev <- readRDS(paste0(path, "dataset/TrueUnambPrevalence", name, ".rds"))
+    true_prev <- readRDS(paste0(path, "dataset/TruePrevalence", name, ".rds"))
+
     # Plots parameters
     legende1 <- c('ambiguous', 'unambiguous', 'relative')
+    legende2 <- c('estimate', 'true')
 
     for(l in 1:numbloci){ # 2 or 5 loci
       # Building the prevalence dataframe
-      df_ambprev   <- dataframe_builder_prev(amb_prev, 'amb_prev', l)
-      df_unambprev <- dataframe_builder_prev(unamb_prev, 'unamb_prev', l)
-      df_prev      <- dataframe_builder_prev(prev, 'prev', l)
+      df_ambprev   <- dataframe_builder_prev(amb_prev, 'amb_prev', l, true_amb_prev)
+      df_unambprev <- dataframe_builder_prev(unamb_prev, 'unamb_prev', l, true_unamb_prev)
+      df_prev      <- dataframe_builder_prev(prev, 'prev', l, true_prev)
 
       df <- rbind(df_ambprev,df_unambprev,df_prev)
       tru_freq <- ParTru[[1]][[l]]
@@ -169,17 +198,20 @@ main <- function(ParTru, name){
                 df1 <- df %>%
                       filter(sample == j, freq == i, shape == shape_typ[k]) %>%
                       droplevels()
+
                 df1$lbd <- lbdavec
                 p <- ggplot(data = df1, aes(x=lbd))
-                p <- p + geom_line(aes(y = df1[,'prev'], color = type), size=1.)
-                p <- beautify(p, legende1, c(0.20, 0.25), cbPalette, lty, 'Prevalence')
+                p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
+                p <- beautify(p, legende1, legende2, c(0.8, 0.30), cbPalette, lty, 'Prevalence', NULL)
                 p <- p + labs(x=expression(lambda), y="Prevalence", title=paste0("P = ", round(trufreq_vec[i], 3), ", N = ", j))
                 p <- p + expand_limits(y=0)
+
                 if(name == 'Kenya'){
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", est_years[k], "_", name, ".pdf")
                 }else{
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", NLoci[l], "_", name, ".pdf")
                 }
+
                 pdf(outfile, height=5, width=8)
                 print(p)
                 dev.off()
@@ -191,7 +223,7 @@ main <- function(ParTru, name){
   }
   legende1  <- NSamp
 
-  if(1==0){ # Plotting bias for haplotype frequencies
+  if(1==1){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -212,7 +244,7 @@ main <- function(ParTru, name){
 
                 p <- ggplot(data = df1, aes(x=lbd))
                 p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-                p <- beautify(p, legende1, NULL, cbPalette, lty, 'Sample')
+                p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
                 p <- p + expand_limits(y=0)
                 p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias frequencies in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                 if(name == 'Kenya'){
@@ -230,7 +262,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting bias for prevalence
+  if(1==1){ # Plotting bias for prevalence
     prev_type <- c('Amb', 'Unamb','Prev')
     # Importing the data to plot
     for (typ in prev_type){
@@ -259,7 +291,7 @@ main <- function(ParTru, name){
 
                   p <- ggplot(data = df1, aes(x=lbd))
                   p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'Sample')
+                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
                   p <- p + expand_limits(y=0)
                   p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias prevalence in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                   if(name == 'Kenya'){
@@ -278,7 +310,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting coef of variation for prevalence
+  if(1==1){ # Plotting coef of variation for prevalence
     prev_type <- c('Amb', 'Unamb','Prev')
     # Importing the data to plot
     for (typ in prev_type){
@@ -307,7 +339,7 @@ main <- function(ParTru, name){
 
                   p <- ggplot(data = df1, aes(x=lbd))
                   p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'Sample')
+                  p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
                   p <- p + expand_limits(y=0)
                   p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('coef. var. prevalence'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                   if(name == 'Kenya'){
@@ -326,7 +358,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==0){ # Plotting bias and coefficient of variation for MOI
+  if(1==1){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -347,7 +379,7 @@ main <- function(ParTru, name){
 
           p <- ggplot(data = df1, aes(x=lbd))
           p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
-          p <- beautify(p, legende1, NULL, cbPalette, lty, 'Sample')
+          p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
           p <- p + expand_limits(y=0)
           p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias MOI in %'))
           if(name == 'Kenya'){
@@ -366,7 +398,7 @@ main <- function(ParTru, name){
 
           p <- ggplot(data = df2, aes(x=lbd))
           p <- p + geom_line(aes(y = df2[,'bias'], color = sample), size=1.)
-          p <- beautify(p, legende1, NULL, cbPalette, lty, 'Sample')
+          p <- beautify(p, legende1, NULL, cbPalette, lty, 'N', 'italic')
           p <- p + expand_limits(y=0)
           p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Coef. variation MOI'))
            if(name == 'Kenya'){

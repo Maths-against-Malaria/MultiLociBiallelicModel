@@ -649,25 +649,25 @@ main <- function(df_Param, true_Par, name){
   df_Estim <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
 
   # Bias of frequencies and MOI
-  #bias(df_Estim, df_Param, name)
+  bias(df_Estim, df_Param, name)
 
   # Coefficient of variation of MOI
-  #coefvar(df_Estim, df_Param, name)
+  coefvar(df_Estim, df_Param, name)
 
   # True ambiguous prevalence
-  #tru_AmbPrev   <- true_amb_prevalence(true_Par, name)
+  tru_AmbPrev   <- true_amb_prevalence(true_Par, name)
 
   # True unambiguous prevalence
-  #tru_UnambPrev <- true_unamb_prevalence(true_Par, df_Param, name)
+  tru_UnambPrev <- true_unamb_prevalence(true_Par, df_Param, name)
 
   # True prevalence
   tru_Prev      <- true_prevalence(true_Par, df_Param, name)
 
   # Estimated ambiguous prevalence
-  #perf_amb_prevalence(df_Estim, tru_AmbPrev, name)
+  perf_amb_prevalence(df_Estim, tru_AmbPrev, name)
 
   # Estimated unambiguous prevalence
-  #perf_unamb_prevalence(df_Estim, df_Param, tru_UnambPrev, name)
+  perf_unamb_prevalence(df_Estim, df_Param, tru_UnambPrev, name)
 
   # Estimated prevalence
   perf_prevalence(df_Estim, df_Param, tru_Prev, name)
@@ -679,6 +679,7 @@ path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malar
 namelist <- c('', 'Kenya')
 
 for (name in namelist){
+  print(paste0('Ongoing simulation for: ', name, ' data!'))
   # Loading true haplotype frequencies and MOI
   dfParam <- readRDS(paste0(path, "dataset/trueParameters", name, ".rds"))
 
