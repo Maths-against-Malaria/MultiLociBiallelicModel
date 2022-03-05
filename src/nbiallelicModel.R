@@ -43,24 +43,24 @@ varsets <- function(l, n) {
 }
 
 nbialModel <- function(Nx, X){
-  eps <- 10^-8 #Error
-  N <- sum(Nx) #Sample size
-  nn <- nrow(X)  #Number of different observations present in the dataset
-  n <- ncol(X)  #Number of loci
+  eps <- 10^-8  # Error
+  N <- sum(Nx)  # Sample size
+  nn <- nrow(X) # Number of different observations present in the dataset
+  n <- ncol(X)  # Number of loci
   Ax <- list()
   
   for(u in 1:nn){
-    xx <- array(X[u,],c(1,n)) #xx = observation
-    sel <- (1:n)[xx==2] #Identifying the loci where the 2 alleles are observed
-    l <- length(sel)    #Counting the number of loci where the 2 alleles are observed
+    xx <- array(X[u,],c(1,n)) # xx = observation
+    sel <- (1:n)[xx==2]       # Identifying the loci where the 2 alleles are observed
+    l <- length(sel)          # Counting the number of loci where the 2 alleles are observed
     
-    if(l==0){   # If the infection is a haplotype (only one allele per locus)
+    if(l==0){                 # If the infection is a haplotype (only one allele per locus)
       yy <- xx
     }else{ 
       yy <- xx[rep(1,3^l),]
       yy[,sel] <- varsets(3,l) # Set of all possible observations which combinations can form xx $\mathscr{A}_{y}$
     }
-    bin <- 2^((n-1):0) # (0:(n-1))
+    bin <- 2^((n-1):0)
     iilist <- list()
     siglist <- list()
     for(i in 1:3^l){
@@ -87,13 +87,13 @@ nbialModel <- function(Nx, X){
   hapl1 <- unique(hapl1)
   H <- length(hapl1)
   
-  pp <- array(rep(1/H,H),c(H,1))   #Initial frequency distribution (of the observed haplotypes) for the EM algorithm
+  pp <- array(rep(1/H,H),c(H,1))   #  Initial frequency distribution (of the observed haplotypes) for the EM algorithm
   rownames(pp) <- hapl1
   
-  la <- 2                         #Initial value of lambda for the EM algo.
+  la <- 2                          # Initial value of lambda for the EM algo.
   
   num0 <- pp*0
-  cond1 <- 1  ## Initializing the condition to stop EM alg! 
+  cond1 <- 1                       # Initializing the condition to stop EM algorithm 
   Bcoeff <- num0
   num <- num0
   rownames(num) <- hapl1
@@ -103,13 +103,13 @@ nbialModel <- function(Nx, X){
   while(cond1>eps && t<500){
     t <- t + 1
     Ccoeff <- 0
-    Bcoeff <- num0 #reset B coefficients to 0 in next iteration
-    num <- num0  #reset numerator to 0 in next iteration
-    for(u in 1:nn){ # For all possible observation
+    Bcoeff <- num0                # reset B coefficients to 0 in next iteration
+    num <- num0                   # reset numerator to 0 in next iteration
+    for(u in 1:nn){               # For all possible observation
       denom <- 0
       num <- num0
       CC <- 0
-      for(k in 1:Ax[[u]][[3]]){ # For all h in Ay
+      for(k in 1:Ax[[u]][[3]]){   # For all h in Ay
         p <- sum(pp[Ax[[u]][[1]][[k]],]) # Be careful with this sum!!!!!
         vz <- Ax[[u]][[2]][[k]]
         lap <- la*p
@@ -130,7 +130,7 @@ nbialModel <- function(Nx, X){
     Ccoeff <- Ccoeff/N
 
       # Replacing NaN's in Ak by 0
-      cnt<-0
+      cnt <- 0
       for(i in seq_along(Bcoeff)){
         if (is.nan(Bcoeff[i])){
           cnt <- cnt + 1
@@ -151,7 +151,7 @@ nbialModel <- function(Nx, X){
         ex <- exp(-xt)
         xtn <- xt + (1-ex)*(xt + Ccoeff*ex - Ccoeff)/(ex*xt+ex-1)
 
-        if(is.nan(xtn) || (tau == 299) || xtn < 0){ #Replacing NA value by random values of lambda
+        if(is.nan(xtn) || (tau == 299) || xtn < 0){ #Replacing NA and negative lambda value by random values
           xtn <- runif(1, 0.1, 2.5)
         }
         cond2 <- abs(xtn-xt)

@@ -2,14 +2,14 @@
 # Objective    : Plot the bias and coefficient of variation of the estimates
 # Created by   : christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 08.02.22
+# Last modified: 28.02.22
 
 # Importing libraries
 library(dplyr)
 library(ggplot2)
 
 # Functions
-beautify <- function (p, legende1, legende2, pos, colpal, linety, name, form){
+beautify <- function (p, legende1, legende2, pos, colpal, linety, lgdetitle, form){
   p <- p + theme(panel.grid.minor = element_blank(),panel.grid=element_blank())
   p <- p + theme(panel.grid.major = element_blank(),panel.grid=element_blank())
   p <- p + theme(panel.grid.minor.y=element_blank(),panel.grid.major.y=element_blank())
@@ -24,16 +24,16 @@ beautify <- function (p, legende1, legende2, pos, colpal, linety, name, form){
   p <- p + theme(legend.key=element_blank(), legend.text.align = 0, legend.background = element_blank())
   p <- p + theme(legend.key=element_blank(), legend.text.align = 0, legend.position = pos, legend.background = element_blank())
   p <- p + scale_linetype_manual(values=linety, labels=Ilab <-  legende2, guide = guide_legend(title = NULL))
-  p <- p + scale_colour_manual(values=colpal, labels=Ilab <-  legende1, guide = guide_legend(title = NULL))
+  p <- p + scale_colour_manual(values=colpal, labels=Ilab <-  legende1, guide = guide_legend(title = lgdetitle))
   p <- p + theme(legend.text = element_text(size = rel(2.2)))
-  p <- p + theme(legend.title = element_text(size = rel(1.8),face=form), legend.margin = margin(t = 1, b = 0.01))
+  p <- p + theme(legend.title = element_text(size = rel(2.0),face=form), legend.margin = margin(t = 1, b = 0.01))
   p <- p + theme(legend.key.width = unit(9.5,"mm"))
 
   # Axis
   p <- p + theme(axis.text = element_text(colour='black'))
   p <- p + theme(axis.text = element_text(size = rel(2.1)))
   p <- p + theme(axis.title = element_text(size = rel(2.2)))
-  p <- p + theme(axis.title.x = element_text(face="plain"))
+  p <- p + theme(axis.title.x = element_text(face="italic"))
   p <- p + theme(axis.title.y = element_text(face="plain"))
   p <- p + theme(axis.ticks = element_line(color = "black"))
 
@@ -155,36 +155,39 @@ main <- function(ParTru, name){
   shape_typ <- c('sym', 'asym')
 
   if(name=="Kenya"){
-    dir        <- 'DD'
+    dir   <- 'DD'
   }else{
-    dir        <- 'SD'
+    dir   <- 'SD'
   }
-  
+
   # Color palette (color-blind friendly) for the plots
   cbPalette <- c(rgb(0,0,0), rgb(.35, .70, .90), rgb(.90,.60,0), rgb(0,.60,.50), rgb(0,.45,.70), rgb(.80,.40,0), rgb(.5, .5, .5))
-  lty <- c("dashed", "solid")
-  legende2 <- c('estimate', 'true')
+  lty       <- c("dashed", "solid")
+  legende2  <- c('estimate', 'true')
 
   if(1==1){ # Plotting prevalence
     # Importing the data to plot
-    amb_prev   <- readRDS(paste0(path, "dataset/ambPrevalenceEstimates", name, ".rds"))
-    unamb_prev <- readRDS(paste0(path, "dataset/unambPrevalenceEstimates", name, ".rds"))
-    prev       <- readRDS(paste0(path, "dataset/prevalenceEstimates", name, ".rds"))
+    amb_prev          <- readRDS(paste0(path, "dataset/ambPrevalenceEstimates",         name, ".rds"))
+    unamb_prev        <- readRDS(paste0(path, "dataset/unambPrevalenceEstimates",       name, ".rds"))
+    relative_prev     <- readRDS(paste0(path, "dataset/relativeprevalenceEstimates",    name, ".rds"))
+    conditional_prev  <- readRDS(paste0(path, "dataset/conditionalPrevalenceEstimates", name, ".rds"))
 
-    true_amb_prev <- readRDS(paste0(path, "dataset/TrueAmbPrevalence", name, ".rds"))
-    true_unamb_prev <- readRDS(paste0(path, "dataset/TrueUnambPrevalence", name, ".rds"))
-    true_prev <- readRDS(paste0(path, "dataset/TruePrevalence", name, ".rds"))
+    true_amb_prev         <- readRDS(paste0(path, "dataset/TrueAmbPrevalence",         name, ".rds"))
+    true_unamb_prev       <- readRDS(paste0(path, "dataset/TrueUnambPrevalence",       name, ".rds"))
+    true_relative_prev    <- readRDS(paste0(path, "dataset/TrueRelativePrevalence",    name, ".rds"))
+    true_conditional_prev <- readRDS(paste0(path, "dataset/TrueConditionalPrevalence", name, ".rds"))
 
     # Plots parameters
-    legende1 <- c('ambiguous', 'unambiguous', 'relative')
+    legende1 <- c('ambiguous', 'unambiguous', 'relative', 'conditional')
 
     for(l in 1:numbloci){ # 2 or 5 loci
       # Building the prevalence dataframe
-      df_ambprev   <- dataframe_builder_prev(amb_prev, 'amb_prev', l, true_amb_prev)
-      df_unambprev <- dataframe_builder_prev(unamb_prev, 'unamb_prev', l, true_unamb_prev)
-      df_prev      <- dataframe_builder_prev(prev, 'prev', l, true_prev)
+      df_ambprev   <- dataframe_builder_prev(amb_prev,         'amb_prev',         l, true_amb_prev)
+      df_unambprev <- dataframe_builder_prev(unamb_prev,       'unamb_prev',       l, true_unamb_prev)
+      df_relprev   <- dataframe_builder_prev(relative_prev,    'relative_prev',    l, true_relative_prev)
+      df_condprev  <- dataframe_builder_prev(conditional_prev, 'conditional_prev', l, true_conditional_prev)
 
-      df <- rbind(df_ambprev,df_unambprev,df_prev)
+      df <- rbind(df_ambprev, df_unambprev, df_relprev, df_condprev)
       tru_freq <- ParTru[[1]][[l]]
 
       for(k in 1:NFreq){  # sym or asym
@@ -200,7 +203,7 @@ main <- function(ParTru, name){
                 df1$lbd <- lbdavec
                 p <- ggplot(data = df1, aes(x=lbd))
                 p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
-                p <- beautify(p, legende1, legende2, c(0.8, 0.30), cbPalette, lty, 'Prevalence', NULL)
+                p <- beautify(p, legende1, legende2, c(0.8, 0.32), cbPalette, lty, NULL, NULL)
                 p <- p + labs(x=expression(lambda), y="Prevalence", title=paste0("P = ", round(trufreq_vec[i], 3), ", N = ", j))
                 p <- p + expand_limits(y=0)
 
@@ -219,10 +222,10 @@ main <- function(ParTru, name){
       }
     }
   }
+
   legende1  <- NSamp
   
-
-  if(1==1){ # Plotting bias for haplotype frequencies
+  if(1==0){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -245,7 +248,7 @@ main <- function(ParTru, name){
                 p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
                 p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
                 p <- p + expand_limits(y=0)
-                p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias frequencies in %'), title = paste0('p = ', round(trufreq_vec[i], 3)))
+                p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('bias frequencies (in %)'), title = paste0('p = ', round(trufreq_vec[i], 3)))
                 if(name == 'Kenya'){
                   outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/frequency/", "bias_freq_", i, "_year_", est_years[k], "_", name, ".pdf")
                 }else{
@@ -261,15 +264,16 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias for prevalence
-    prev_type <- c('Amb', 'Unamb','Prev')
+  if(1==0){ # Plotting bias for prevalence
+    prev_type <- c('Amb', 'Unamb','Relative', 'CondPrev')
     # Importing the data to plot
     for (typ in prev_type){
-      if (typ == 'Prev'){
-        typdir <- ''
-      }else{
-        typdir <- typ
-      }
+      typdir <- typ
+      #  if (typ == 'Prev'){
+      #    typdir <- ''
+      #  }else{
+      #    typdir <- typ
+      #  }
       prevbias <- readRDS(paste0(path, "dataset/bias", typdir, "Prevalence", name, ".rds"))
 
         for(l in 1:numbloci){ # 2 or 5 loci
@@ -309,7 +313,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting coef of variation for prevalence
+  if(1==0){ # Plotting coef of variation for prevalence
     prev_type <- c('Amb', 'Unamb','Prev')
     # Importing the data to plot
     for (typ in prev_type){
@@ -357,7 +361,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias and coefficient of variation for MOI
+  if(1==0){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -416,7 +420,7 @@ main <- function(ParTru, name){
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 # Define data origin ('' <- simualted data, kenya <- kenyan data)
-namelist <- c('', 'Kenya')
+namelist <- c('') #c('', 'Kenya')
 
 for (name in namelist){
   # Importing extra parameters
