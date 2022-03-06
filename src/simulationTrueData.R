@@ -112,7 +112,7 @@ print("Simulation finished, save your data.")
 saveRDS(out, file = paste0(path, "dataset/modelEstimates", name, ".rds"))
 
 # Saving the true parameters
-saveRDS(True_param, file = paste0(path, "dataset/trueParameters", name, ".rds"))
+saveRDS(True_param, file = paste0(path, "dataset/true_Parameters", name, ".rds"))
 
 # Saving the extra parameters
-saveRDS(ParExtra, file = paste0(path, "dataset/extraParameters", name, ".rds"))
+saveRDS(ParExtra, file = paste0(path, "dataset/extra_Parameters", name, ".rds"))
