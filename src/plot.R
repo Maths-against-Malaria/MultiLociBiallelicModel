@@ -26,7 +26,7 @@ beautify <- function (p, legende1, legende2, pos, colpal, linety, lgdetitle, for
   p <- p + scale_linetype_manual(values=linety, labels=Ilab <-  legende2, guide = guide_legend(title = NULL))
   p <- p + scale_colour_manual(values=colpal, labels=Ilab <-  legende1, guide = guide_legend(title = lgdetitle))
   p <- p + theme(legend.text = element_text(size = rel(2.2)))
-  p <- p + theme(legend.title = element_text(size = rel(2.0),face=form), legend.margin = margin(t = 1, b = 0.01))
+  p <- p + theme(legend.title = element_text(size = rel(2.0),face=form), legend.margin = margin(t = 1, b = 0.00001))
   p <- p + theme(legend.key.width = unit(9.5,"mm"))
 
   # Axis
@@ -150,7 +150,7 @@ dataframe_builder_Moiperf <- function(perf_estim, locNumb){
   df1
 }
 
-main <- function(ParTru, name){
+main <- function(sim_Param, name){
   # Plots parameters
   shape_typ <- c('sym', 'asym')
 
@@ -168,32 +168,35 @@ main <- function(ParTru, name){
   if(1==1){ # Plotting prevalence
     # Importing the data to plot
     amb_prev          <- readRDS(paste0(path, "dataset/estim_Amb_Prevalence",   name, ".rds"))
-    unamb_prev        <- readRDS(paste0(path, "dataset/estim_Unamb_Prevalence", name, ".rds"))
+    #unamb_prev        <- readRDS(paste0(path, "dataset/estim_Unamb_Prevalence", name, ".rds"))
     relative_prev     <- readRDS(paste0(path, "dataset/estim_Rel_Prevalence",   name, ".rds"))
     conditional_prev  <- readRDS(paste0(path, "dataset/estim_Cond_Prevalence",  name, ".rds"))
 
     true_amb_prev         <- readRDS(paste0(path, "dataset/true_Amb_Prevalence",   name, ".rds"))
-    true_unamb_prev       <- readRDS(paste0(path, "dataset/true_Unamb_Prevalence", name, ".rds"))
+   # true_unamb_prev       <- readRDS(paste0(path, "dataset/true_Unamb_Prevalence", name, ".rds"))
     true_relative_prev    <- readRDS(paste0(path, "dataset/true_Rel_Prevalence",   name, ".rds"))
     true_conditional_prev <- readRDS(paste0(path, "dataset/true_Cond_Prevalence",  name, ".rds"))
 
     # Plots parameters
-    legende1 <- c('ambiguous', 'conditional', 'relative', 'unambiguous')
+    legende1 <- c('ambiguous', 'conditional', 'relative') #, 'unambiguous')
+
+    # Position of legend
+    pos <- c(0.17, 0.68)
 
     for(l in 1:n_Sim_Loci){ # 2 or 5 loci
       # Building the prevalence dataframe
       df_ambprev   <- dataframe_builder_prev(amb_prev,         'amb_prev',         l, true_amb_prev)
-      df_unambprev <- dataframe_builder_prev(unamb_prev,       'unamb_prev',       l, true_unamb_prev)
+      #df_unambprev <- dataframe_builder_prev(unamb_prev,       'unamb_prev',       l, true_unamb_prev)
       df_relprev   <- dataframe_builder_prev(relative_prev,    'relative_prev',    l, true_relative_prev)
       df_condprev  <- dataframe_builder_prev(conditional_prev, 'conditional_prev', l, true_conditional_prev)
 
-      df <- rbind(df_ambprev, df_condprev, df_relprev, df_unambprev)
-      tru_freq <- ParTru[[1]][[l]]
+      df <- rbind(df_ambprev, df_condprev, df_relprev)#, df_unambprev)
+      tru_freq <- sim_Param[[1]][[l]]
 
       for(k in 1:n_Freq_Distr){  # sym or asym
         trufreq_vec <- tru_freq[k,]
 
-        for(i in 1:n_Hapl [l]){
+        for(i in 1:n_Hapl[l]){
           if(trufreq_vec[i] != 0){
               for(j in samp_Vec){
                 df1 <- df %>%
@@ -201,11 +204,13 @@ main <- function(ParTru, name){
                       droplevels()
 
                 df1$lbd <- lbda_Vec
+                
                 p <- ggplot(data = df1, aes(x=lbd))
                 p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
-                p <- beautify(p, legende1, legende2, c(0.80, 0.35), cbPalette, lty, NULL, NULL)
-                p <- p + labs(x=expression(lambda), y="Prevalence", title=paste0("P = ", round(trufreq_vec[i], 3), ", N = ", j))
-                p <- p + expand_limits(y=0)
+                p <- p + geom_hline(yintercept = round(trufreq_vec[i], 3), linetype="dashed", color = "grey")
+                p <- beautify(p, legende1, legende2, pos, cbPalette, lty, 'prevalence', NULL)
+                p <- p + labs(x=expression(lambda), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j))
+                #p <- p + expand_limits(y=0)
 
                 if(name == 'Kenya'){
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", estim_Years[k], "_", name, ".pdf")
@@ -225,14 +230,14 @@ main <- function(ParTru, name){
 
   legende1  <- samp_Vec
   
-  if(1==1){ # Plotting bias for haplotype frequencies
+  if(1==0){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
       for(l in 1:n_Sim_Loci){ # 2 or 5 loci
         # Building the frequencies bias dataframe
         df <- dataframe_builder_Freqperf(freqbias, l)
-        tru_freq <- ParTru[[1]][[l]]
+        tru_freq <- sim_Param[[1]][[l]]
 
         for(k in 1:n_Freq_Distr){  # sym or asym
           trufreq_vec <- tru_freq[k,]
@@ -279,7 +284,7 @@ main <- function(ParTru, name){
         for(l in 1:n_Sim_Loci){ # 2 or 5 loci
           # Building the frequencies bias dataframe
           df <- dataframe_builder_Freqperf(prevbias, l)
-          tru_freq <- ParTru[[1]][[l]]
+          tru_freq <- sim_Param[[1]][[l]]
 
           for(k in 1:n_Freq_Distr){  # sym or asym
             trufreq_vec <- tru_freq[k,]
@@ -327,7 +332,7 @@ main <- function(ParTru, name){
         for(l in 1:n_Sim_Loci){ # 2 or 5 loci
           # Building the frequencies bias dataframe
           df <- dataframe_builder_Freqperf(prevcoefvar, l)
-          tru_freq <- ParTru[[1]][[l]]
+          tru_freq <- sim_Param[[1]][[l]]
 
           for(k in 1:n_Freq_Distr){  # sym or asym
             trufreq_vec <- tru_freq[k,]
@@ -361,7 +366,7 @@ main <- function(ParTru, name){
     }
   }
 
-  if(1==1){ # Plotting bias and coefficient of variation for MOI
+  if(1==0){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -371,7 +376,7 @@ main <- function(ParTru, name){
         df_cv   <- dataframe_builder_Moiperf(moicv, l)
         df_bias <- dataframe_builder_Moiperf(moibias, l)
 
-        tru_freq <- ParTru[[1]][[l]]
+        tru_freq <- sim_Param[[1]][[l]]
 
         for(k in 1:n_Freq_Distr){  # sym or asym
           trufreq_vec <- tru_freq[k,]
