@@ -165,7 +165,7 @@ main <- function(sim_Param, name){
   lty       <- c("dashed", "solid")
   legende2  <- c('estimate', 'true')
 
-  if(1==1){ # Plotting prevalence
+  if(1==0){ # Plotting prevalence
     # Importing the data to plot
     amb_prev          <- readRDS(paste0(path, "dataset/estim_Amb_Prevalence",   name, ".rds"))
     #unamb_prev        <- readRDS(paste0(path, "dataset/estim_Unamb_Prevalence", name, ".rds"))
@@ -203,9 +203,9 @@ main <- function(sim_Param, name){
                       filter(sample == j, freq == i, shape == shape_typ[k]) %>%
                       droplevels()
 
-                df1$lbd <- lbda_Vec
+                df1$psiVec <- psi(lbda_Vec)
                 
-                p <- ggplot(data = df1, aes(x=lbd))
+                p <- ggplot(data = df1, aes(x=psiVec))
                 p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
                 p <- p + geom_hline(yintercept = round(trufreq_vec[i], 3), linetype="dashed", color = "grey")
                 p <- beautify(p, legende1, legende2, pos, cbPalette, lty, 'prevalence', NULL)
@@ -247,9 +247,9 @@ main <- function(sim_Param, name){
                 df1 <- df %>%
                     filter(freq == i, shape == shape_typ[k]) %>%
                     droplevels()
-                df1$lbd <- lbda_Vec
+                df1$psiVec <- psi(lbda_Vec)
 
-                p <- ggplot(data = df1, aes(x=lbd))
+                p <- ggplot(data = df1, aes(x=psiVec))
                 p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
                 p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
                 p <- p + expand_limits(y=0)
@@ -366,7 +366,7 @@ main <- function(sim_Param, name){
     }
   }
 
-  if(1==0){ # Plotting bias and coefficient of variation for MOI
+  if(1==1){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
@@ -383,13 +383,13 @@ main <- function(sim_Param, name){
           df1 <- df_bias %>%
                 filter(shape == shape_typ[k]) %>%
                 droplevels()
-          df1$lbd <- lbda_Vec
+          df1$psiVec <- psi(lbda_Vec)
 
-          p <- ggplot(data = df1, aes(x=lbd))
+          p <- ggplot(data = df1, aes(x=psiVec))
           p <- p + geom_line(aes(y = df1[,'bias'], color = sample), size=1.)
           p <- beautify(p, legende1, legende2, NULL, cbPalette, lty, 'N', 'italic')
           p <- p + expand_limits(y=0)
-          p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('Bias MOI in %'))
+          p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y=paste0('bias MOI (in %)'))
           if(name == 'Kenya'){
               outfile <- paste0(path,"plots/Bias_cv_plots_", dir, "/moi/", "bias_moi_year_", estim_Years[k], "_", name, ".pdf")
           }else{
