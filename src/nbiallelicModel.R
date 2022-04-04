@@ -2,7 +2,7 @@
 # Objective    : Implementation of the model (EM-algorithm)
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 03.04.21
-# Last modified: 22.12.21
+# Last modified: 04.04.22
 
 liklh <- function (Bx, nl, ppest, laest, nx){
   la <- laest
@@ -183,4 +183,52 @@ nbialModel <- function(Nx, X){
     }
 
   return(c(la, pp))
+}
+
+hapl <- function(n){
+  H <- array(0,c(2^n,n))
+  H[1:2,1] <- c(0,1)
+  for(k in 2:n){
+    H[(2^(k-1)+1):2^k,1:(k-1)] <- H[1:2^(k-1),1:(k-1)]
+    H[(2^(k-1)+1):2^k,k] <- 1
+  }
+  H <- H[,n:1]
+  H
+}
+
+adhocModel <- function(X){
+  nloci <- ncol(X)
+  # extract unambiguous observations
+  X <- X[rowSums(X==2)<2,]
+  # find indexes of multiple infections
+  idx1 <- which(rowSums(X==2)==1)
+  # single infections
+  s <- X[-idx1,]
+  if(all(is.na(s))){
+    s <- X
+  }
+  # multiple infections to infecting haplotypes
+  for(i in idx1){
+    y <- X[i,]
+    idx2 <- which(y==2)
+    h <- array(rep(y,2), c(nloci, 2))
+    h[idx2,] <- c(0,1)
+    # add haplotypes in s
+    s <- rbind(s,t(h))
+  }
+
+  # estimate haplotype frequencies
+  nhpl <- 2^nloci
+  p <- rep(0, nhpl)
+  n <- nrow(s)
+  hpl <- hapl(nloci)
+  for(i in 1:nhpl){
+    cnt <- 0
+    hplo <- hpl[i,]
+    for(j in 1:n){
+      cnt <- cnt + sum(sum(s[j,] == hplo)==nloci)
+    }
+    p[i] <- cnt/n
+  }
+  p
 }

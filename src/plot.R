@@ -165,7 +165,7 @@ main <- function(sim_Param, name){
   lty       <- c("dashed", "solid")
   legende2  <- c('estimate', 'true')
 
-  if(1==0){ # Plotting prevalence
+  if(1==1){ # Plotting prevalence
     # Importing the data to plot
     amb_prev          <- readRDS(paste0(path, "dataset/estim_Amb_Prevalence",   name, ".rds"))
     #unamb_prev        <- readRDS(paste0(path, "dataset/estim_Unamb_Prevalence", name, ".rds"))
@@ -181,7 +181,7 @@ main <- function(sim_Param, name){
     legende1 <- c('ambiguous', 'conditional', 'relative') #, 'unambiguous')
 
     # Position of legend
-    pos <- c(0.17, 0.68)
+    pos <- c(0.17, 0.65)
 
     for(l in 1:n_Sim_Loci){ # 2 or 5 loci
       # Building the prevalence dataframe
@@ -209,7 +209,7 @@ main <- function(sim_Param, name){
                 p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
                 p <- p + geom_hline(yintercept = round(trufreq_vec[i], 3), linetype="dashed", color = "grey")
                 p <- beautify(p, legende1, legende2, pos, cbPalette, lty, 'prevalence', NULL)
-                p <- p + labs(x=expression(lambda), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j))
+                p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j, ", n = ", n_Loci[l]))
                 #p <- p + expand_limits(y=0)
 
                 if(name == 'Kenya'){
@@ -230,7 +230,7 @@ main <- function(sim_Param, name){
 
   legende1  <- samp_Vec
   
-  if(1==0){ # Plotting bias for haplotype frequencies
+  if(1==1){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 

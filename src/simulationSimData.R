@@ -2,7 +2,7 @@
 # Objectives   : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : christian Tsoungui Obama, Kristan A. Schneider
 # Created on   : 03.04.21
-# Last modified: 01.01.22
+# Last modified: 04.04.22
 
 # Relative path
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
@@ -50,32 +50,41 @@ True_param <- list(Pvec, lbdavec, Nvec)
 
 # Simulation
 out <- vector(mode = "list", length = Nn)
+out2 <- vector(mode = "list", length = Nn)
 
 for (i in 1:Nn){
   print(paste0("processing frequency distributions of locus: ", i))
   sizelist <- vector(mode = "list", length = NN)
+  sizelist2 <- vector(mode = "list", length = NN)
   for (j in 1:NN){                                                                                ## For each value of the sample size
     lbdalist <- vector(mode = "list", length = NLbd)
+    lbdalist2 <- vector(mode = "list", length = NLbd)
     for (k in 1:NLbd){                                                                            ## For each value of the lambda parameter
       Estim <- array(0, dim = c(Hvecpo[i], NEst, NFreq))
+      adhocEstim <- array(0, dim = c(Hvec[i], NEst, NFreq))
       for (cnt in 1:NFreq){
         for (l in 1:NEst){
-          infct <-  sampNew(unlist(Pvec[[i]][cnt,]) ,unlist(lbdavec[k]) ,Nvec[j], nvec[,i])       ## Generating data for the simulation
+          infct <- sampNew(unlist(Pvec[[i]][cnt,]) ,unlist(lbdavec[k]) ,Nvec[j], nvec[,i])        ## Generating data for the simulation
           Estim[,l,cnt] <- unlist(nbialModel(infct[[2]], infct[[1]]))                             ## Evaluating and saving the Estimates
+          adhocEstim[,l,cnt] <- unlist(adhocModel(infct[[1]]))                                    ## Ad hoc estimates for frequencies
         }
       }
       lbdalist[[k]] <- Estim
+      lbdalist2[[k]] <- adhocEstim
     }
     sizelist[[j]] <- lbdalist
+    sizelist2[[j]] <- lbdalist2
   }
   out[[i]] <- sizelist
+  out2[[i]] <- sizelist2
 }
 
 # End of simulation warning
 print("Simulation finished save your data")
 
-# Saving the list for post-processing
+# Saving the MOI and frequencies estimates for post-processing
 saveRDS(out, file = paste0(path, "dataset/modelEstimates.rds"))
+saveRDS(out2, file = paste0(path, "dataset/adhocModelEstimates.rds"))
 
 # Saving the true parameters
 saveRDS(True_param, file = paste0(path, "dataset/true_Parameters.rds"))
