@@ -198,37 +198,44 @@ hapl <- function(n){
 
 adhocModel <- function(X){
   nloci <- ncol(X)
-  # extract unambiguous observations
-  X <- X[rowSums(X==2)<2,]
-  # find indexes of multiple infections
-  idx1 <- which(rowSums(X==2)==1)
-  # single infections
-  s <- X[-idx1,]
-  if(all(is.na(s))){
-    s <- X
-  }
-  # multiple infections to infecting haplotypes
-  for(i in idx1){
-    y <- X[i,]
-    idx2 <- which(y==2)
-    h <- array(rep(y,2), c(nloci, 2))
-    h[idx2,] <- c(0,1)
-    # add haplotypes in s
-    s <- rbind(s,t(h))
-  }
-
   # estimate haplotype frequencies
   nhpl <- 2^nloci
   p <- rep(0, nhpl)
-  n <- nrow(s)
-  hpl <- hapl(nloci)
-  for(i in 1:nhpl){
-    cnt <- 0
-    hplo <- hpl[i,]
-    for(j in 1:n){
-      cnt <- cnt + sum(sum(s[j,] == hplo)==nloci)
+  # extract unambiguous observations
+  X1 <- X[rowSums(X==2)<2,]
+
+  if(!all(is.na(X1))){  # if there are unambiguous infections
+    X <- X1
+    # find indexes of multiple infections
+    idx1 <- which(rowSums(X==2)==1)
+
+    if(length(idx1)>0){
+      # single infections
+      s <- X[-idx1,]
+    }else {
+      s <- X
     }
-    p[i] <- cnt/n
+    
+    # multiple infections to infecting haplotypes
+    for(i in idx1){
+      y <- X[i,]
+      idx2 <- which(y==2)
+      h <- array(rep(y,2), c(nloci, 2))
+      h[idx2,] <- c(0,1)
+      # add haplotypes in s
+      s <- rbind(s,t(h))
+    }
+    n <- nrow(s)
+    hpl <- hapl(nloci)
+    
+    for(i in 1:nhpl){
+      cnt <- 0
+      hplo <- hpl[i,]
+      for(j in 1:n){
+        cnt <- cnt + sum(sum(s[j,] == hplo)==nloci)
+      }
+      p[i] <- cnt/n
+    }
   }
   p
 }
