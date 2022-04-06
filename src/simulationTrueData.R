@@ -111,14 +111,14 @@ for (i in 1:Nn){
   }
   out[[i]] <- sizelist
   out2[[i]] <- sizelist2
+
+  # Saving the MOI and frequencies estimates for post-processing
+  saveRDS(out, file = paste0(path, "dataset/modelEstimates", name, ".rds"))
+  saveRDS(out2, file = paste0(path, "dataset/adhocModelEstimates", name, ".rds"))
+  
+  # End of simulation warning
+  print("Simulation finished save your data for : ", nvec[,i])
 }
-
-# End of simulation warning
-print("Simulation finished save your data")
-
-# Saving the list for post-processing
-saveRDS(out, file = paste0(path, "dataset/modelEstimates", name, ".rds"))
-saveRDS(out2, file = paste0(path, "dataset/adhocModelEstimates", name, ".rds"))
 
 # Saving the true parameters
 saveRDS(True_param, file = paste0(path, "dataset/true_Parameters", name, ".rds"))

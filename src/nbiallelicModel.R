@@ -2,7 +2,7 @@
 # Objective    : Implementation of the model (EM-algorithm)
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 03.04.21
-# Last modified: 04.04.22
+# Last modified: 06.04.22
 
 liklh <- function (Bx, nl, ppest, laest, nx){
   la <- laest
@@ -205,7 +205,11 @@ adhocModel <- function(X){
   X1 <- X[rowSums(X==2)<2,]
 
   if(!all(is.na(X1))){  # if there are unambiguous infections
-    X <- X1
+    n1 <- nrow(X1)
+    if(is.null(n1)){ # if there is only one unambiguous infection
+      n1 <- 1
+    }
+    X <- matrix(X1, nrow = n1)
     # find indexes of multiple infections
     idx1 <- which(rowSums(X==2)==1)
 
