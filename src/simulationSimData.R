@@ -2,7 +2,7 @@
 # Objectives   : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : christian Tsoungui Obama, Kristan A. Schneider
 # Created on   : 03.04.21
-# Last modified: 04.04.22
+# Last modified: 06.04.22
 
 # Relative path
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
@@ -81,7 +81,7 @@ for (i in 1:Nn){
   # Saving the MOI and frequencies estimates for post-processing
   saveRDS(out, file = paste0(path, "dataset/modelEstimates.rds"))
   saveRDS(out2, file = paste0(path, "dataset/adhocModelEstimates.rds"))
-  
+
   # End of simulation warning
   print("Simulation finished save your data for : ", nvec[,i])
 }

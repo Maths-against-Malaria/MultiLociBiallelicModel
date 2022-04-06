@@ -2,7 +2,7 @@
 # Objective    : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : Christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 04.04.22
+# Last modified: 06.04.22
 
 # Loading library
 library(xlsx)
