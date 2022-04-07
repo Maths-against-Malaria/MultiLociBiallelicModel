@@ -233,7 +233,7 @@ adhocModel <- function(X){
     
     # binary representation
     bin <- 2^((nloci-1):0)
-    pp <- rowSums(s*bin)+1
+    pp <- s%*%bin+1
     pp <- table(pp)/length(pp)
     
     # indexes
