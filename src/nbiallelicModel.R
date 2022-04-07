@@ -201,6 +201,7 @@ adhocModel <- function(X){
   # estimate haplotype frequencies
   nhpl <- 2^nloci
   p <- rep(0, nhpl)
+  
   # extract unambiguous observations
   X1 <- X[rowSums(X==2)<2,]
 
@@ -220,7 +221,7 @@ adhocModel <- function(X){
       s <- X
     }
     
-    # multiple infections to infecting haplotypes
+    # find all the haplotypes in X
     for(i in idx1){
       y <- X[i,]
       idx2 <- which(y==2)
@@ -229,17 +230,15 @@ adhocModel <- function(X){
       # add haplotypes in s
       s <- rbind(s,t(h))
     }
-    n <- nrow(s)
-    hpl <- hapl(nloci)
     
-    for(i in 1:nhpl){
-      cnt <- 0
-      hplo <- hpl[i,]
-      for(j in 1:n){
-        cnt <- cnt + sum(sum(s[j,] == hplo)==nloci)
-      }
-      p[i] <- cnt/n
-    }
+    # binary representation
+    bin <- 2^((nloci-1):0)
+    pp <- rowSums(s*bin)+1
+    pp <- table(pp)/length(pp)
+    
+    # indexes
+    idx <- as.numeric(names(pp))
+    p[idx] <- pp
   }
   p
 }
