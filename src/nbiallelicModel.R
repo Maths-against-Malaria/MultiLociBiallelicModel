@@ -2,7 +2,7 @@
 # Objective    : Implementation of the model (EM-algorithm)
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 03.04.21
-# Last modified: 06.04.22
+# Last modified: 07.04.22
 
 liklh <- function (Bx, nl, ppest, laest, nx){
   la <- laest
