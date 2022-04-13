@@ -87,7 +87,7 @@ out <- vector(mode = "list", length = Nn)
 out2 <- vector(mode = "list", length = Nn)
 
 for (i in 1:Nn){
-  print(paste0("processing frequency distributions of locus: ", i))
+  print(paste0("processing frequency distributions of ", nvec[,i], " loci."))
   sizelist <- vector(mode = "list", length = NN)
   sizelist2 <- vector(mode = "list", length = NN)
   for (j in 1:NN){                                                                                ## For each value of the sample size
@@ -117,7 +117,7 @@ for (i in 1:Nn){
   saveRDS(out2, file = paste0(path, "dataset/adhocModelEstimates", name, ".rds"))
   
   # End of simulation warning
-  print("Simulation finished save your data for : ", nvec[,i])
+  print(paste0("Simulation finished for ", nvec[,i], " loci ;)"))
 }
 
 # Saving the true parameters
