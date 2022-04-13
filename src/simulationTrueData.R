@@ -59,7 +59,7 @@ Nvec <- c(50, 100, 150, 200, 500)
 NN <- length(Nvec)
 
 # Number of estimates generated in the simulation
-NEst <- 5 #10000
+NEst <- 10000
 
 # Number of distributions of true frequencies for each number of loci (we remove 2017 estimates)
 NFreq <- length(est_years)-1
@@ -98,9 +98,9 @@ for (i in 1:Nn){
       adhocEstim <- array(0, dim = c(Hvec[i], NEst, NFreq))
       for (cnt in 1:NFreq){
         for (l in 1:NEst){
-          infct <- sampNew(unlist(Pvec[[i]][cnt,]) ,unlist(lbdavec[k]) ,Nvec[j], nvec[,i])        ## Generating data for the simulation
-          Estim[,l,cnt] <- unlist(nbialModel(infct[[2]], infct[[1]]))                             ## Evaluating and saving the Estimates
-          adhocEstim[,l,cnt] <- unlist(adhocModel(infct[[1]]))                                    ## Ad hoc estimates for frequencies
+          infct              <- sampNew(unlist(Pvec[[i]][cnt,]) ,unlist(lbdavec[k]) ,Nvec[j], nvec[,i])        ## Generating data for the simulation
+          Estim[,l,cnt]      <- unlist(nbialModel(infct[[2]], infct[[1]]))                                     ## Evaluating and saving the Estimates
+          adhocEstim[,l,cnt] <- unlist(adhocModel(infct[[1]]))                                                 ## Ad hoc estimates for frequencies
         }
       }
       lbdalist[[k]] <- Estim
