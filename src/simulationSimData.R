@@ -30,7 +30,7 @@ Nvec <- c(50, 100, 150, 200, 500)
 NN <- length(Nvec)
 
 # Number of estimates generated in the simulation
-NEst <- 20000
+NEst <- 10000
 
 # Number of frequencies set per (number of loci) case
 NFreq <- length(NumbLoci)
@@ -83,7 +83,7 @@ for (i in 1:Nn){
   saveRDS(out2, file = paste0(path, "dataset/adhocModelEstimates.rds"))
 
   # End of simulation warning
-  print("Simulation finished save your data for : ", nvec[,i])
+  print(paste0("Simulation finished for: ", nvec[,i], " loci !!!"))
 }
 
 # Saving the true parameters
