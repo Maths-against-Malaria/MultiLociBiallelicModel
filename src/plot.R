@@ -2,7 +2,7 @@
 # Objective    : Plot the bias and coefficient of variation of the estimates
 # Created by   : christian Tsoungui Obama
 # Created on   : 03.04.21
-# Last modified: 28.02.22
+# Last modified: 14.04.22
 
 # Importing libraries
 library(dplyr)
@@ -26,7 +26,7 @@ beautify <- function (p, legende1, legende2, pos, colpal, linety, lgdetitle, for
   p <- p + scale_linetype_manual(values=linety, labels=Ilab <-  legende2, guide = guide_legend(title = NULL))
   p <- p + scale_colour_manual(values=colpal, labels=Ilab <-  legende1, guide = guide_legend(title = lgdetitle))
   p <- p + theme(legend.text = element_text(size = rel(2.2)))
-  p <- p + theme(legend.title = element_text(size = rel(2.0),face=form), legend.margin = margin(t = 1, b = 0.00001))
+  p <- p + theme(legend.title = element_text(size = rel(1.5),face=form), legend.margin = margin(t = 1, b = 0.00001))
   p <- p + theme(legend.key.width = unit(9.5,"mm"))
 
   # Axis
@@ -178,10 +178,10 @@ main <- function(sim_Param, name){
     true_conditional_prev <- readRDS(paste0(path, "dataset/true_Cond_Prevalence",  name, ".rds"))
 
     # Plots parameters
-    legende1 <- c('ambiguous', 'conditional', 'relative') #, 'unambiguous')
+    legende1 <- c('ambiguous', 'conditional', 'relative')
 
     # Position of legend
-    pos <- c(0.17, 0.65)
+    pos <- NULL #c(0.17, 0.65)
 
     for(l in 1:n_Sim_Loci){ # 2 or 5 loci
       # Building the prevalence dataframe
@@ -208,10 +208,8 @@ main <- function(sim_Param, name){
                 p <- ggplot(data = df1, aes(x=psiVec))
                 p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
                 p <- p + geom_hline(yintercept = round(trufreq_vec[i], 3), linetype="dashed", color = "grey")
-                p <- beautify(p, legende1, legende2, pos, cbPalette, lty, 'prevalence', NULL)
+                p <- beautify(p, legende1, legende2, pos, cbPalette, lty, NULL, NULL)
                 p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j, ", n = ", n_Loci[l]))
-                #p <- p + expand_limits(y=0)
-
                 if(name == 'Kenya'){
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", estim_Years[k], "_", name, ".pdf")
                 }else{

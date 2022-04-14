@@ -196,14 +196,19 @@ hapl <- function(n){
   H
 }
 
-adhocModel <- function(X){
-  nloci <- ncol(X)
+adhocModel <- function(dat){
+  X <- dat[[1]]
+  Nx <- dat[[2]]
+
+  X <- cbind(X, Nx)
+  n <- ncol(X)
+  nloci <- n-1
   # estimate haplotype frequencies
   nhpl <- 2^nloci
   p <- rep(0, nhpl)
   
   # extract unambiguous observations
-  X1 <- X[rowSums(X==2)<2,]
+  X1 <- X[rowSums(X[,1:nloci]==2)<2,]
 
   if(!all(is.na(X1))){  # if there are unambiguous infections
     n1 <- nrow(X1)
@@ -212,7 +217,7 @@ adhocModel <- function(X){
     }
     X <- matrix(X1, nrow = n1)
     # find indexes of multiple infections
-    idx1 <- which(rowSums(X==2)==1)
+    idx1 <- which(rowSums(X[,1:nloci]==2)==1)
 
     if(length(idx1)>0){
       # single infections
@@ -224,8 +229,8 @@ adhocModel <- function(X){
     # find all the haplotypes in X
     for(i in idx1){
       y <- X[i,]
-      idx2 <- which(y==2)
-      h <- array(rep(y,2), c(nloci, 2))
+      idx2 <- which(y[1:nloci]==2)
+      h <- array(rep(y,2), c(n, 2))
       h[idx2,] <- c(0,1)
       # add haplotypes in s
       s <- rbind(s,t(h))
@@ -233,12 +238,18 @@ adhocModel <- function(X){
     
     # binary representation
     bin <- 2^((nloci-1):0)
-    pp <- s%*%bin+1
-    pp <- table(pp)/length(pp)
+    pp <- s[,1:nloci]%*%bin+1
+    pp <- cbind(pp,s[,n])
+
+    # observed haplotypes
+    idx3 <- unique(pp[,1])
     
-    # indexes
-    idx <- as.numeric(names(pp))
-    p[idx] <- pp
+    # Brute force !!!!
+    tot <- sum(pp[,2])
+    for (i in idx3){
+      idx4 <- which(pp[,1]==i)
+      p[i] <- sum(pp[idx4,2])/tot
+    }
   }
   p
 }

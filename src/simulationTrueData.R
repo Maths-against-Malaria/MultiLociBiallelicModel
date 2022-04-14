@@ -100,7 +100,7 @@ for (i in 1:Nn){
         for (l in 1:NEst){
           infct              <- sampNew(unlist(Pvec[[i]][cnt,]) ,unlist(lbdavec[k]) ,Nvec[j], nvec[,i])        ## Generating data for the simulation
           Estim[,l,cnt]      <- unlist(nbialModel(infct[[2]], infct[[1]]))                                     ## Evaluating and saving the Estimates
-          adhocEstim[,l,cnt] <- unlist(adhocModel(infct[[1]]))                                                 ## Ad hoc estimates for frequencies
+          adhocEstim[,l,cnt] <- unlist(adhocModel(infct))                                                 ## Ad hoc estimates for frequencies
         }
       }
       lbdalist[[k]] <- Estim

@@ -711,7 +711,7 @@ estim_conditional_prevalence <- function(estim_Param, sim_Param, true_prev, name
   qh_loc
 }
 
-estim_relative_prevalence <- function(estim_Param, sim_Param, true_prev, name){
+estim_relative_prevalence <- function(estim, name){
   # This function estimates the relative prevalence as defined in the manuscript of tsoungui et.al, titled
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
 
@@ -750,7 +750,6 @@ estim_relative_prevalence <- function(estim_Param, sim_Param, true_prev, name){
         #coefvar_prev <- vector(mode = "list", length = n_Freq_Distr)
 
         for (i in 1:n_Freq_Distr){ # For each choice of true frequency distribution
-          rh         <- array(0, dim = c(num_Hapl, n_Sampl_Gen))
           prev       <- array(0, dim = c(num_Hapl, n_Sampl_Gen))
           prevalence <- rep(0, num_Hapl)
           #bias_prevalence <- rep(0, num_Hapl)
@@ -761,46 +760,7 @@ estim_relative_prevalence <- function(estim_Param, sim_Param, true_prev, name){
           #true_prev <- true_prev[[l]][[i]]
 
           ## Access each of the 10000 estimates
-          tmp1 <- estim_Param[[l]][[k]][[j]][, , i]
-          tmp2 <- tmp1[2:(num_Hapl+1),]
-
-          ## For each haplotype build the set Uh for all l
-          trufreq_vec <- true_freq[i,]
-          pickhap     <- which(trufreq_vec != 0)
-
-          # Find ambiguous prevalence for each haplotype
-          for (idx in pickhap){
-            uh                  <- t(array(rep(Hapl[idx,], numb_Loci), dim = c(numb_Loci, numb_Hapl_Uh)))
-            uh[2:numb_Hapl_Uh,] <- (uh[2:numb_Hapl_Uh,]+diag(numb_Loci))%%2 
-
-            ## Pick the right frequencies estimates 
-            pickh <- which(colSums(uh[1,] == t(Hapl))==numb_Loci)
-            GPh   <- gen_func(tmp2[pickh,], tmp1[1,])
-
-            GPartFreq <- rep(0, n_Sampl_Gen)
-            GFreq     <- rep(0, n_Sampl_Gen)
-
-            pick1 <- rep(0, numb_Hapl_Uh)
-            pick2 <- rep(0, numb_Hapl_Uh)
-
-            for(idxUh in 1:numb_Hapl_Uh){ 
-              pick1[idxUh] <- which(colSums(uh[idxUh,] == t(Hapl))==numb_Loci)
-            }
-            pick2    <- pick1
-            pick2[1] <- 0
-
-            for(idxUh in 2:numb_Hapl_Uh){ 
-              GPartFreq <- gen_func(tmp2[pick2[idxUh],], tmp1[1,])
-              GFreq     <- gen_func(colSums(tmp2[pick1[c(1,idxUh)],]), tmp1[1,])
-              rh[idx,]  <- rh[idx,] + GFreq - GPartFreq
-            }
-            rh[idx,]    <- rh[idx,] - (numb_Loci - 1)*GPh
-          }
-
-          den <- colSums(rh, na.rm = TRUE)
-          for (q in 1:n_Sampl_Gen){
-            prev[,q] <- rh[,q]/den[q]
-          }
+          prev <- estim[[l]][[k]][[j]][, , i]
           prevalence <- rowMeans(prev, na.rm = TRUE)
           
           #for (q in 1:num_Hapl){
@@ -840,17 +800,16 @@ estim_relative_prevalence <- function(estim_Param, sim_Param, true_prev, name){
   qh_loc
 }
 
-
 main <- function(sim_Param, reshap_Sim_Param, name){
   # Loading estimated haplotype frequencies and MOI
-  estim_Param <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
+  estim_Param       <- readRDS(paste0(path, "dataset/modelEstimates", name, ".rds"))
+  adhoc_estim_Param <- readRDS(paste0(path, "dataset/adhocModelEstimates", name, ".rds"))
 
   # Bias of frequencies and MOI
   bias(estim_Param, sim_Param, name)
 
   # Coefficient of variation of MOI
   coefvar(estim_Param, sim_Param, name)
-
 
   # True ambiguous prevalence
   true_Amb_Prev          <- true_amb_prevalence(reshap_Sim_Param, name)
@@ -874,8 +833,8 @@ main <- function(sim_Param, reshap_Sim_Param, name){
   # Estimated conditional prevalence
   estim_conditional_prevalence(estim_Param, sim_Param, true_Conditional_Prev, name)
 
-  # Estimated relative prevalence
-  estim_relative_prevalence(estim_Param, sim_Param, true_Relative_Prev, name)
+  # Estimated relative prevalence (adhoc Model)
+  estim_relative_prevalence(adhoc_estim_Param, name)
 }
  
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
