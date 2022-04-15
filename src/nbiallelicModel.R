@@ -208,7 +208,8 @@ adhocModel <- function(dat){
   p <- rep(0, nhpl)
   
   # extract unambiguous observations
-  X1 <- X[rowSums(X[,1:nloci]==2)<2,]
+  tmp1 <- matrix(X[,1:nloci]==2, ncol = nloci)
+  X1 <- X[rowSums(tmp1)<2,]
 
   if(!all(is.na(X1))){  # if there are unambiguous infections
     n1 <- nrow(X1)
@@ -217,7 +218,8 @@ adhocModel <- function(dat){
     }
     X <- matrix(X1, nrow = n1)
     # find indexes of multiple infections
-    idx1 <- which(rowSums(X[,1:nloci]==2)==1)
+    tmp2 <- matrix(X[,1:nloci]==2, ncol = nloci)
+    idx1 <- which(rowSums(tmp2)==1)
 
     if(length(idx1)>0){
       # single infections
@@ -244,7 +246,7 @@ adhocModel <- function(dat){
     # observed haplotypes
     idx3 <- unique(pp[,1])
     
-    # Brute force !!!!
+    # Frequencies estimates
     tot <- sum(pp[,2])
     for (i in idx3){
       idx4 <- which(pp[,1]==i)
