@@ -181,7 +181,7 @@ main <- function(sim_Param, name){
     legende1 <- c('ambiguous', 'conditional', 'relative')
 
     # Position of legend
-    pos <- NULL #c(0.17, 0.65)
+    pos <- c(0.17, 0.65)
 
     for(l in 1:n_Sim_Loci){ # 2 or 5 loci
       # Building the prevalence dataframe

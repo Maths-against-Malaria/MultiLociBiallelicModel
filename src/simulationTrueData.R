@@ -22,11 +22,11 @@ df <- read.xlsx(paste0(path,'dataset/MutFreq2005-2017_CT.xlsx'), 1)
 name <- 'Kenya'
 
 ## True frequencies adjustments (to compensate for the removal of the )
-df[17, "est2010"] <- "0.081"
+df[19, "est2010"] <- "0.081"
 
 ## Data preprocessing
 df1 <- df %>%
-        select(c(1:11, 14, 17)) %>%
+        select(c(1:11, 14, 19)) %>%
         mutate_at(1:10, as.factor)
 
 for (i in 11:13){
