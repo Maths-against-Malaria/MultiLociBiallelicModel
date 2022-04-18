@@ -2,7 +2,7 @@
 # Objectives   : Implement the EM-algorithm on simulated data and save the estimates
 # Created by   : christian Tsoungui Obama, Kristan A. Schneider
 # Created on   : 03.04.21
-# Last modified: 07.04.22
+# Last modified: 15.04.22
 
 # Relative path
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"

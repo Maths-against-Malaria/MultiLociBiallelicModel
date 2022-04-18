@@ -209,10 +209,11 @@ main <- function(sim_Param, name){
                 p <- p + geom_line(aes(y = df1[,'prev'], color = type, linetype = vers), size=1.)
                 p <- p + geom_hline(yintercept = round(trufreq_vec[i], 3), linetype="dashed", color = "grey")
                 p <- beautify(p, legende1, legende2, pos, cbPalette, lty, NULL, NULL)
-                p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j, ", n = ", n_Loci[l]))
                 if(name == 'Kenya'){
+                    p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j, ", year = ", estim_Years[k]))
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_freq_", i, "_SSize_", j, "_year_", estim_Years[k], "_", name, ".pdf")
                 }else{
+                    p <- p + labs(x=expression(frac(lambda, 1 - e^-lambda)), y="", title=paste0("p = ", round(trufreq_vec[i], 3), ", N = ", j, ", n = ", n_Loci[l]))
                     outfile <- paste0(path,"plots/Prev_plots_", dir, "/prev_", shape_typ[k], "_freq_", i, "_SSize_", j, "_nloci_", n_Loci[l], "_", name, ".pdf")
                 }
 
