@@ -178,10 +178,10 @@ main <- function(sim_Param, name){
     true_conditional_prev <- readRDS(paste0(path, "dataset/true_Cond_Prevalence",  name, ".rds"))
 
     # Plots parameters
-    legende1 <- c('ambiguous', 'conditional', 'relative')
+    legende1 <- c('unobservable', 'conditional', 'relative')
 
     # Position of legend
-    pos <- c(0.17, 0.65)
+    pos <- c(0.20, 0.70)
 
     for(l in 1:n_Sim_Loci){ # 2 or 5 loci
       # Building the prevalence dataframe
@@ -229,7 +229,7 @@ main <- function(sim_Param, name){
 
   legende1  <- samp_Vec
   
-  if(1==1){ # Plotting bias for haplotype frequencies
+  if(1==0){ # Plotting bias for haplotype frequencies
     # Importing the data to plot
     freqbias <- readRDS(paste0(path, "dataset/freqbias", name, ".rds"))
 
@@ -365,7 +365,7 @@ main <- function(sim_Param, name){
     }
   }
 
-  if(1==1){ # Plotting bias and coefficient of variation for MOI
+  if(1==0){ # Plotting bias and coefficient of variation for MOI
     # Importing the data to plot
     moibias  <- readRDS(paste0(path, "dataset/moibias", name, ".rds"))
     moicv    <- readRDS(paste0(path, "dataset/moicv", name, ".rds"))
