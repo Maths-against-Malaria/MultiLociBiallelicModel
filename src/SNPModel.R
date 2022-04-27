@@ -2,8 +2,13 @@
 # Objective    : Contains implementation of the model (EM-algorithm) and supporting functions
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 26.04.22
-# Last modified: 26.04.22
+# Last modified: 27.04.22
 
+
+#################################
+# Function varsets(n,l) outputs all possible vectors of length n with entries 0,.., l-1
+# in an l^n x n matrix
+#################################
 varsets <- function(l,n) {
   # l = 2^2-1 (case of biallelic loci) # n = number of heterozygote loci
   B <- array(0,c(l^n,n))
@@ -21,6 +26,10 @@ varsets <- function(l,n) {
   B
 }
 
+#################################
+# Function hapl(n) takes as input the number of loci and outputs a 2^n x n matrix of all possible 
+# haplotypes in binary representation
+#################################
 hapl <- function(n){
   H <- array(0,c(2^n,n))
   H[1:2,1] <- c(0,1)
@@ -32,13 +41,64 @@ hapl <- function(n){
   H
 }
 
-gen_func <- function(x, lambd){
-  (exp(x*lambd)-1)/(exp(lambd) - 1)
+#################################
+# Function cpoiss(lambda,n) outputs n randomly drawn integer froma condidtional Poisson distribution 
+# with parameter lambda
+#################################
+cpoiss <- function(lambda,n){
+  m <- 100 # to accelerate computation it is assumed that m<100 is generically drawn
+  out <- c()
+  x <- runif(n,min=0,max=1)
+  p0 <- ppois(0,lambda)
+  nc <- 1/(1-exp(-lambda))
+  pvec <- (ppois(1:m,lambda)-p0)*nc
+  pvec <- c(pvec,1) 
+  for (i in 1:n){
+    k <- 1
+    while(x[i] > pvec[k]){
+      k <- k+1
+    }
+    if(k >= m){ # if a m>=100 is drawn this is executed
+      k <- k+1
+      a <- dpois(k,lambda)*nc
+      b <- pvec[m]+a
+      while(x[i]>b){
+        k <- k+1
+        a <- a*lambda/k
+        b <- b+a
+      }
+    }
+    out <- c(out, k) 
+  }
+  out
 }
 
-datasetgen <- function(P,lambda,k,n){ 
+#################################
+# The function obs(M) gives a representation for an infection with haplotypes given by the matrix M. 
+# The input M is  k x n matrix with entries 0 and 1, where each row  is a haplotype corresponding to 
+# a 0-1 vector. Obs returns the corresponding vector representation of the observ
+#################################
+obs <- function(M){
+  n <- ncol(as.matrix(M)) #number of loci
+  if(n==1){
+    M <- t(M)
+    n <- ncol(M)
+  }
+  out <- array(0,n)
+  for(k in 1:n){
+    out[k] <- sum(unique(M[,k])+1)
+  }
+  out
+}
+
+#################################
+# Function datasetgen(P,lambda,k,n) is used to simulate data. It generates k observations assuming n biallelic loci with haplotype distribution P 
+# wich must be a vector of length 2n a k x n matrix of observations sampled using the multinomial and Poisson distribution 
+# of parameters (m, P) and lambda respectively. m is the MOI for the corresponding sample.
+#################################
+datasetgen <- function(P,lambda,k, n){ 
   # P = haplotype distro., lambda = Poisson parameter,
-  # K = Sample size, n = N° of loci
+  # k = Sample size, n = number of loci
   H <- hapl(n)       # Set of possible haplotypes
   out <- matrix(0,nrow=k, ncol=n)
   m <- cpoiss(lambda,k) # MOI values for each sample following CPoiss(lambda)
@@ -49,6 +109,17 @@ datasetgen <- function(P,lambda,k,n){
   out
 }
 
+#################################
+# Function gen_func(x,lambd) calculates the value of the generating function of the conditional Poisson distribution for x.
+#################################
+gen_func <- function(x, lambd){
+  (exp(x*lambd)-1)/(exp(lambd) - 1)
+}
+
+#################################
+# The function estsnpmodel(X,Nx) implements the EM algorithm and returns the MLEs, i.e., 
+# estimates of haplotype frequencies and Poisson parameter.
+#################################
 estsnpmodel <- function(X, Nx){
   eps <- 10^-8  # Error
   N <- sum(Nx)  # Sample size
@@ -172,6 +243,10 @@ estsnpmodel <- function(X, Nx){
   list(la, pp)
 }
 
+#################################
+# The function reform(X1,id) takes as input the dataset in the 0-1-2-notation and returns a matrix of the observations,
+# and a vector of the counts counts of those observations, i.e., number of times each observation is made in the dataset.
+#################################
 reform <- function(X1, id = TRUE){
     # This function formats the data for the MLE function
     # Remove the id column
@@ -200,6 +275,10 @@ reform <- function(X1, id = TRUE){
     list(dat, Nx)
 }
 
+#################################
+# The function mle(df,id) 
+# and a vector of the counts counts of those observations, i.e., number of times each observation is made in the dataset.
+#################################
 mle <- function(df, id = TRUE){
     # This function removes the ID column if there is one,
     # then it derives the number of time each observation is made in the dataset,

@@ -94,7 +94,7 @@ sampNew <- function(P,lambda,k, n){
 }
 
 
-out <- samp(Pvec[[2]][2,], 0.1, 100, 5)
+out <- samp(rep(0.25,4), 0.5, 100, 2)
 df <- as.data.frame(out)
 id <- c()
 for(i in 1:nrow(df)){
@@ -110,4 +110,4 @@ cnames <- c('ID', marker)
 df <- cbind(id,df)
 colnames(df) <- cnames
 
-write.xlsx(df, paste0(path,'dataset/exampleData1.xlsx'), row.names = FALSE,)
+write.xlsx(df, paste0(path,'dataset/exampleData2.xlsx'), row.names = FALSE,)

@@ -12,7 +12,7 @@
 library(xlsx)
 
 # Importing the reformatted data as '.xlsx' file
-#path <- "/home/john_doe/Documents/"
+#path <- "/home/johndoe/Documents/"
 path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 df <- read.xlsx(paste0(path,'dataset/exampleData.xlsx'),1)
 
