@@ -58,6 +58,19 @@ cpoiss<-function(lambda,n){
   out
 }
 
+samp <- function(P,lambda,k, n){ 
+  # P = haplotype distro., lambda = Poisson parameter,
+  # K = Sample size, n = N° of loci
+  H <- hapl(n)       # Set of possible haplotypes
+  out <- matrix(0,nrow=k, ncol=n)
+  m <- cpoiss(lambda,k) # MOI values for each sample following CPoiss(lambda)
+  for(j in 1:k){        # for each sample
+    s <- rmultinom(1, m[j], P) #multinomially select M[j] haplotypes from the haplotype pool
+    out[j,] <- obs(H[s!=0,])-1 #Summing up the trianary representation of a number representing the infection
+  } #vector of infections
+  out
+}
+
 sampNew <- function(P,lambda,k, n){ 
   # P = haplotype distro., lambda = Poisson parameter,
   # K = Sample size, n = N° of loci
@@ -79,3 +92,22 @@ sampNew <- function(P,lambda,k, n){
   } #Trianary representation of each infection present in the dataset
   list(dat, c(out))
 }
+
+
+out <- samp(Pvec[[2]][2,], 0.1, 100, 5)
+df <- as.data.frame(out)
+id <- c()
+for(i in 1:nrow(df)){
+   id <- c(id, paste0('ID',i))
+}
+
+marker <- c()
+for(j in 1:ncol(df)){
+   marker <- c(marker, paste0('Marker',j))
+}
+
+cnames <- c('ID', marker)
+df <- cbind(id,df)
+colnames(df) <- cnames
+
+write.xlsx(df, paste0(path,'dataset/exampleData1.xlsx'), row.names = FALSE,)

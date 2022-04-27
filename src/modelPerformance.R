@@ -388,7 +388,6 @@ true_relative_prevalence    <- function(reshap_Sim_Param, sim_Param, name){
   qh_loc
 }
 
-
 estim_amb_prevalence <- function(estim_Param, true_prev, name){
   # This function estimates the ambiguous prevalence as defined in the manuscript of tsoungui et.al, titled
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
