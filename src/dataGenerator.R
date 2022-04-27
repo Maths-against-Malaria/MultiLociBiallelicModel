@@ -58,7 +58,7 @@ cpoiss<-function(lambda,n){
   out
 }
 
-samp <- function(P,lambda,k, n){ 
+datasetgen <- function(P,lambda,k, n){ 
   # P = haplotype distro., lambda = Poisson parameter,
   # K = Sample size, n = N° of loci
   H <- hapl(n)       # Set of possible haplotypes
@@ -94,7 +94,7 @@ sampNew <- function(P,lambda,k, n){
 }
 
 
-out <- samp(rep(0.25,4), 0.5, 100, 2)
+out <- datasetgen(rep(0.25,4), 0.5, 100, 2)
 df <- as.data.frame(out)
 id <- c()
 for(i in 1:nrow(df)){

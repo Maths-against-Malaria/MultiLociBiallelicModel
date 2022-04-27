@@ -303,7 +303,9 @@ mle <- function(df, id = TRUE){
         rnames[i] <- paste(dat[i,], collapse = '')
     }
     rownames(out2) <- rnames
-    list(unlist(out[1]), t(out2), dat)
+    out <- list(unlist(out[1]), t(out2), dat)
+    names(out) <- c(expression(lambda), 'p', 'haplotypes')
+    out
 }
 
 #################################
