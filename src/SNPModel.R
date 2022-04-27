@@ -4,7 +4,6 @@
 # Created on   : 26.04.22
 # Last modified: 27.04.22
 
-
 #################################
 # Function varsets(n,l) outputs all possible vectors of length n with entries 0,.., l-1
 # in an l^n x n matrix
@@ -276,8 +275,8 @@ reform <- function(X1, id = TRUE){
 }
 
 #################################
-# The function mle(df,id) 
-# and a vector of the counts counts of those observations, i.e., number of times each observation is made in the dataset.
+# The function mle(df,id) wraps the reform(X1,id) and estsnpmodel(X, Nx) to find the MLEs and outputs the estimates
+# for haplotype frequencies, Poisson parameters, and a matrix of detected haplotypes.
 #################################
 mle <- function(df, id = TRUE){
     # This function removes the ID column if there is one,
@@ -307,6 +306,10 @@ mle <- function(df, id = TRUE){
     list(unlist(out[1]), t(out2), dat)
 }
 
+#################################
+# The function adhocmodel(X,Nx) calculates the relative prevalence of the haplotypes
+# conditionned on unambiguous observations.
+#################################
 adhocmodel <- function(X, Nx){
 
   X <- cbind(X, Nx)
@@ -369,19 +372,21 @@ adhocmodel <- function(X, Nx){
   p
 }
 
+#################################
+# The function sampl(dat) finds the number of occurences of each observation in the dataset dat.
+# The output is a vector of those numbers.
+#################################
 sampl <- function(dat){
-    # This function find the number of occurences of
-    # each observation in the dataset.
-    # Input: dataset dat;
-    # Output: array of the number of occurences
-
     nloci <- ncol(dat)
     trin <- 3^((nloci-1):0)
     out <- table(as.matrix(dat, ncol=nloci)%*%trin + 1)
     out
 }
 
-## Prevalence estimates
+#################################
+# The function estunobsprev(estim) calculates the unobservable prevalence of the haplotypes.
+# The input is the MLEs obtained by the function estsnpmodel(X, Nx).
+#################################
 estunobsprev <- function(estim){
   # This function estimates the unobservable prevalence as defined in the manuscript of tsoungui et.al, titled
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
@@ -392,6 +397,10 @@ estunobsprev <- function(estim){
     prev
 }
 
+#################################
+# The function estcondprev(estim) calculates the prevalence of the haplotypes conditioned on.
+# unambiguous observations. The input is the MLEs obtained by the function estsnpmodel(X, Nx).
+#################################
 estcondprev <- function(estim){
   # This function estimates the unambiguous prevalence as defined in the manuscript of tsoungui et.al, titled
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of 
@@ -456,6 +465,10 @@ estcondprev <- function(estim){
     prev
 }
 
+#################################
+# The function estrelprev(df,id) wraps the functions reform(df,id) and adhocmodel(X, Nx) to calculate 
+#  the relative prevalence of the haplotypes conditionned on unambiguous observations.
+#################################
 estrelprev <- function(df, id = TRUE){
     # This function removes the ID column if there is one,
     # then it derives the number of time each observation is made in the dataset,
