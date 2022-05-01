@@ -14,7 +14,7 @@ library(xlsx)
 
 # Importing the reformatted data as '.xlsx' file
 # path <- "/home/janedoe/Documents/"
-# DATA <- read.xlsx('/home/janedoe/Documents/example.xlsx', 1, header = TRUE)
+DATA <- read.xlsx('/home/janedoe/Documents/example.xlsx', 1, header = TRUE)
 path1 <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/dataset/"
 path2 <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
