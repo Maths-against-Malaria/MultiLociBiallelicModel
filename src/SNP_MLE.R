@@ -14,11 +14,12 @@ library(xlsx)
 
 # Importing the reformatted data as '.xlsx' file
 # path <- "/home/janedoe/Documents/"
-DATA <- read.xlsx('/home/janedoe/Documents/example.xlsx', 1, header = TRUE)
+#DATA <- read.xlsx('/home/janedoe/Documents/example.xlsx', 1, header = TRUE)
 path1 <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/dataset/"
 path2 <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
 
 DATA1 <- read.xlsx(paste0(path1,'CameroonMcCollum2008-SNP.xlsx'), 5, header = TRUE)
+DATA <- read.xlsx('/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/dataset/example.xlsx', 1, header = TRUE)
 pick1 <- rowSums(is.na(DATA1))<1
 DATA1 <- DATA1[pick1,]
 
