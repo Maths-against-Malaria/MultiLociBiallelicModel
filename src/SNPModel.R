@@ -91,17 +91,15 @@ obs <- function(M){
 }
 
 #################################
-# Function datasetgen(P,lambda,k,n) is used to simulate data. It generates k observations assuming n biallelic loci with haplotype distribution P 
-# wich must be a vector of length 2n a k x n matrix of observations sampled using the multinomial and Poisson distribution 
+# Function datasetgen(P,lambda,N,n) is used to simulate data. It generates N observations assuming n biallelic loci with haplotype distribution P 
+# wich must be a vector of length 2n a N x n matrix of observations sampled using the multinomial and Poisson distribution 
 # of parameters (m, P) and lambda respectively. m is the MOI for the corresponding sample.
 #################################
-datasetgen <- function(P,lambda,k, n){ 
-  # P = haplotype distro., lambda = Poisson parameter,
-  # k = Sample size, n = number of loci
+datasetgen <- function(P,lambda,N,n){ 
   H <- hapl(n)       # Set of possible haplotypes
-  out <- matrix(0,nrow=k, ncol=n)
-  m <- cpoiss(lambda,k) # MOI values for each sample following CPoiss(lambda)
-  for(j in 1:k){        # for each sample
+  out <- matrix(0,nrow=N, ncol=n)
+  m <- cpoiss(lambda,N) # MOI values for each sample following CPoiss(lambda)
+  for(j in 1:N){        # for each sample
     s <- rmultinom(1, m[j], P) #multinomially select M[j] haplotypes from the haplotype pool
     out[j,] <- obs(H[s!=0,])-1 #Summing up the trianary representation of a number representing the infection
   } #vector of infections
@@ -352,7 +350,7 @@ adhocmodel <- function(X, Nx){
     }
     
     # binary representation
-    bin <- 2^(0:(nloci-1))
+    bin <- 2^((nloci-1):0)
     pp  <- s[,1:nloci]%*%bin+1
     pp  <- cbind(pp,s[,n])
 

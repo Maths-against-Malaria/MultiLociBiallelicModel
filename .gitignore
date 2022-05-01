@@ -39,5 +39,8 @@ vignettes/*.pdf
 .Renviron
 
 # Folders
-dataset/
+local/
 plots/
+private/
+George/
+Archives/
