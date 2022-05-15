@@ -391,10 +391,9 @@ estunobsprev <- function(estim){
   # This function estimates the unobservable prevalence as defined in the manuscript of tsoungui et.al, titled
   # "A maximum-likelihood method to estimate haplotype frequencies and prevalence alongside multiplicity of infection from SNPs data"
 
-    ## For each set of estimates, compute prevalence
-    prev <- (exp(estim[[1]]) - exp(1-estim[[2]])^estim[[1]])/(exp(estim[[1]])-1)
-    
-    prev
+  ## For each set of estimates, compute prevalence
+  prev <- (exp(estim[[1]]) - exp(1-estim[[2]])^estim[[1]])/(exp(estim[[1]])-1) 
+  prev
 }
 
 #################################
