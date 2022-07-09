@@ -240,8 +240,8 @@ estsnpmodel <- function(X, Nx){
 
 
 #################################
-# The function estsnpmodel(X,Nx) implements the EM algorithm and returns the MLEs, i.e., 
-# estimates of haplotype frequencies and Poisson parameter.
+# The function estsnpmodel_plugin(X,Nx,lam) implements the EM algorithm with the Poisson parameter as plugin estimate
+# and returns the plugin Poisson parameter and the MLEs for haplotype frequencies.
 #################################
 estsnpmodel_plugin <- function(X,Nx,lam){
   eps <- 10^-8  # Error
