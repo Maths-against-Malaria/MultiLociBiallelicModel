@@ -2,7 +2,7 @@
 # Objective    : Contains implementation of the model (EM-algorithm) and supporting functions
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 26.04.22
-# Last modified: 27.04.22
+# Last modified: 09.07.22
 
 #################################
 # Function varsets(n,l) outputs all possible vectors of length n with entries 0,.., l-1
@@ -203,7 +203,6 @@ estsnpmodel <- function(X, Nx){
     
     Ccoeff <- Ccoeff/N
 
-      # Replacing NaN's in Ak by 0
       cnt <- 0
       for(i in seq_along(Bcoeff)){
         if (is.nan(Bcoeff[i])){
@@ -236,15 +235,113 @@ estsnpmodel <- function(X, Nx){
       la <- xt
       pp <- ppn
     }
-
   list(la, pp)
+}
+
+
+#################################
+# The function estsnpmodel(X,Nx) implements the EM algorithm and returns the MLEs, i.e., 
+# estimates of haplotype frequencies and Poisson parameter.
+#################################
+estsnpmodel_plugin <- function(X,Nx,lam){
+  eps <- 10^-8  # Error
+  N <- sum(Nx)  # Sample size
+  nn <- nrow(X) # Number of different observations present in the dataset
+  n <- ncol(X)  # Number of loci
+  Ax <- list()
+  
+  for(u in 1:nn){
+    xx <- array(X[u,],c(1,n)) # xx = observation
+    sel <- (1:n)[xx==2]       # Identifying the loci where the 2 alleles are observed
+    l <- length(sel)          # Counting the number of loci where the 2 alleles are observed
+    
+    if(l==0){                 # If the infection is a haplotype (only one allele per locus)
+      yy <- xx
+    }else{ 
+      yy <- xx[rep(1,3^l),]
+      yy[,sel] <- varsets(3,l) # Set of all possible observations which combinations can form xx $\mathscr{A}_{y}$
+    }
+    bin <- 2^((n-1):0)
+    iilist <- list()
+    siglist <- list()
+    for(i in 1:3^l){
+      y1 <- array(yy[i,],c(1,n)) # Observation {\pmb y} in the set $\mathscr{A}_{y}$
+      sel <- (1:n)[y1==2]
+      l1 <- length(sel)
+      if(l1==0){
+        ii <- y1
+      }else{
+        ii <- y1[rep(1,2^l1),]
+        ii[,sel] <- varsets(2,l1)
+      }
+      iilist[[i]] <- as.character(ii%*%bin+1)
+      siglist[[i]] <- (-1)^(l-l1)
+    }
+    Ax[[u]] <- list(iilist,siglist,3^l)
+  }
+  # list of all occuring halotypes 
+  hapl1 <- c()
+  for(u in 1:nn){
+    hapl1 <- c(unlist(Ax[[u]][[1]]),hapl1)
+  }
+  hapl1 <- unique(hapl1)
+  H <- length(hapl1)
+  
+  pp <- array(rep(1/H,H),c(H,1))   #  Initial frequency distribution (of the observed haplotypes) for the EM algorithm
+  rownames(pp) <- hapl1
+  
+  num0 <- pp*0
+  cond1 <- 1                       # Initializing the condition to stop EM algorithm 
+  Bcoeff <- num0
+  num <- num0
+  rownames(num) <- hapl1
+  rownames(Bcoeff) <- hapl1
+  t <- 0
+  
+  while(cond1>eps && t<500){
+    t <- t + 1
+    Bcoeff <- num0                # reset B coefficients to 0 in next iteration
+    num <- num0                   # reset numerator to 0 in next iteration
+    for(u in 1:nn){               # For all possible observation
+      denom <- 0
+      num <- num0
+      for(k in 1:Ax[[u]][[3]]){   # For all h in Ay
+        p <- sum(pp[Ax[[u]][[1]][[k]],]) # Be careful with this sum!!!!!
+        vz <- Ax[[u]][[2]][[k]]
+        lap <- lam*p
+        exlap <- vz*exp(lap)
+        denom <- denom + exlap-vz 
+        num[Ax[[u]][[1]][[k]],] <- num[Ax[[u]][[1]][[k]],]+ exlap
+      }
+      num <- num*pp
+      denom <- Nx[u]/denom
+      denom <- lam*denom
+      
+      Bcoeff <- Bcoeff + num*denom
+      
+    }
+      cnt <- 0
+      for(i in seq_along(Bcoeff)){
+        if (is.nan(Bcoeff[i])){
+          cnt <- cnt + 1
+        }
+      }
+      if(cnt > 0){
+        break
+      }else{
+        ppn <- Bcoeff/(sum(Bcoeff))
+      }
+      cond1 <- sqrt(sum((pp-ppn)^2)) 
+      pp <- ppn
+    }
+  list(lam, pp)
 }
 
 #################################
 # The function reform(X1,id) takes as input the dataset in the 0-1-2-notation and returns a matrix of the observations,
 # and a vector of the counts counts of those observations, i.e., number of times each observation is made in the dataset.
 #################################
-reform <- function(X1, id = TRUE){
+reform <- function(X1, id=TRUE){
     # This function formats the data for the MLE function
     # Remove the id column
     if(id){
@@ -273,26 +370,35 @@ reform <- function(X1, id = TRUE){
 }
 
 #################################
-# The function mle(df,id) wraps the reform(X1,id) and estsnpmodel(X, Nx) to find the MLEs and outputs the estimates
-# for haplotype frequencies, Poisson parameters, and a matrix of detected haplotypes.
+# The function mle(df,id) wraps the reform(X1,id) and either estsnpmodel(X, Nx) or estsnpmodel_plugin(X, Nx, plugin) to find the MLEs 
+# with or without the Poisson parameter as a plug-in estimate, respectively. The function outputs the estimates for haplotype frequencies,
+# Poisson parameters, and a matrix of detected haplotypes.
 #################################
-mle <- function(df, id = TRUE){
+mle <- function(df, id=TRUE, plugin=NULL){
     # This function removes the ID column if there is one,
     # then it derives the number of time each observation is made in the dataset,
     # finally, the MLE are obtained and return in a list.
 
-    dat1 <- reform(df, id=TRUE)
+    dat1 <- reform(df, id=id)
     X <- dat1[[1]]
     Nx <- dat1[[2]]
     nloci <- ncol(X)
-
+ 
     # MLEs
-    out <- estsnpmodel(X, Nx)
-    out2 <- out[[2]]
+    if(is.null(plugin)){
+      out <- estsnpmodel(X, Nx)
+      out2 <- out[[2]]
+    }else{
+      #out <- list()
+      #out[[1]] <- plugin
+      out <- estsnpmodel_plugin(X, Nx, plugin)
+      out2 <- out[[2]]
+    }
+    
     rnames <- as.integer(rownames(out2)) - 1
     nh <- length(rnames)
     dat <- array(0,c(nh,nloci))
-    for(k in 0:(nloci-1)){ #for each locus
+    for(k in 0:(nloci-1)){
         re <- rnames%%(2^(nloci-k-1))
         dat[,nloci-k] <- (rnames-re)/(2^(nloci-k-1))
         rnames <- re
