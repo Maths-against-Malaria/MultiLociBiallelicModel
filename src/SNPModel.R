@@ -374,7 +374,7 @@ reform <- function(X1, id=TRUE){
 # with or without the Poisson parameter as a plug-in estimate, respectively. The function outputs the estimates for haplotype frequencies,
 # Poisson parameters, and a matrix of detected haplotypes.
 #################################
-mle <- function(df, id=TRUE, plugin=NULL){
+mle <- function(df, id=TRUE, plugin=NULL, bootstrap=TRUE){
     # This function removes the ID column if there is one,
     # then it derives the number of time each observation is made in the dataset,
     # finally, the MLE are obtained and return in a list.
@@ -389,8 +389,6 @@ mle <- function(df, id=TRUE, plugin=NULL){
       out <- estsnpmodel(X, Nx)
       out2 <- out[[2]]
     }else{
-      #out <- list()
-      #out[[1]] <- plugin
       out <- estsnpmodel_plugin(X, Nx, plugin)
       out2 <- out[[2]]
     }
@@ -407,7 +405,46 @@ mle <- function(df, id=TRUE, plugin=NULL){
         rnames[i] <- paste(dat[i,], collapse = '')
     }
     rownames(out2) <- rnames
-    out <- list(unlist(out[1]), t(out2), dat)
+
+    # Bootstrap CIs
+    if(bootstrap){
+      nhap  <- length(out2)
+      B     <- 1000
+      alpha <- 0.05
+      N     <- sum(Nx)
+      prob  <- Nx/N
+      Estim <- array(0, dim = c((nhap+1), B))
+      for (l in 1:B){
+        infct <- vector(mode = "list", length = 2)
+        samp  <- rmultinom(N, 1, prob)
+        tmp   <- rowSums(samp)
+        pick  <- tmp == 0
+        infct[[1]]  <- X[!pick,]
+        infct[[2]]  <- tmp[!pick]
+        Estim[,l]   <- unlist(estsnpmodel(infct[[1]], infct[[2]]))                             ## Evaluating and saving the Estimates
+      }
+
+      perc <- t(apply(Estim, 1, quantile, c(alpha/2, (1-alpha/2))))
+      if(is.null(plugin)){
+        lambdaCI      <- 2*out[[1]]-perc[1,]
+        lambdaCI[1:2] <- lambdaCI[c(2,1)]
+        out3          <- c(unlist(out[[1]]), lambdaCI)
+        names(out3)   <- c('', '2.5%', '97.5%') 
+      }else{
+        out3        <- out[[1]]
+        names(out3) <- c('') 
+      }
+      
+      freqCI       <- 2*out2[,1] - perc[2:(nhap+1),]
+      freqCI[,1:2] <- freqCI[,c(2,1)]
+      out4         <- cbind(out2,freqCI)
+
+      out <- list(out3, out4, dat)
+    }else{
+      out1 <- out[[1]]
+      names(out1) <- c('')
+      out <- list(out1, t(out2), dat)
+    }
     names(out) <- c(expression(lambda), 'p', 'haplotypes')
     out
 }
@@ -600,3 +637,21 @@ estrelprev <- function(df, id = TRUE){
     colnames(out) <- cnames
     out
 }
+
+
+# Loading libraries
+library(xlsx)
+
+# Relative path
+path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
+
+# Import the dataset
+DATA <- read.xlsx(paste0(path,'dataset/example.xlsx'), 1, header = TRUE)
+
+# Load external resources
+source("/home/janedoe/Documents/SNPModel.R")
+
+# Find the MLEs
+est <- mle(DATA, id=TRUE, bootstrap = TRUE)
+est
+
