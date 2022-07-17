@@ -626,21 +626,3 @@ estrelprev <- function(df, id = TRUE){
     colnames(out) <- cnames
     out
 }
-
-
-# Loading libraries
-library(xlsx)
-
-# Relative path
-path <- "/Volumes/GoogleDrive-117934057836063832284/My Drive/Maths against Malaria/Christian/Models/MultiLociBiallelicModel/"
-
-# Import the dataset
-DATA <- read.xlsx(paste0(path,'dataset/example.xlsx'), 1, header = TRUE)
-
-# Load external resources
-source("/home/janedoe/Documents/SNPModel.R")
-
-# Find the MLEs
-est <- mle(DATA, id=TRUE, bootstrap = TRUE)
-est
-
