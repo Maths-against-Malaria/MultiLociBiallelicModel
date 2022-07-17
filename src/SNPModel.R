@@ -374,7 +374,7 @@ reform <- function(X1, id=TRUE){
 # with or without the Poisson parameter as a plug-in estimate, respectively. The function outputs the estimates for haplotype frequencies,
 # Poisson parameters, and a matrix of detected haplotypes.
 #################################
-mle <- function(df, id=TRUE, plugin=NULL, bootstrap=TRUE){
+mle <- function(df, id = TRUE, bootstrap=FALSE){
     # This function removes the ID column if there is one,
     # then it derives the number of time each observation is made in the dataset,
     # finally, the MLE are obtained and return in a list.
@@ -383,20 +383,15 @@ mle <- function(df, id=TRUE, plugin=NULL, bootstrap=TRUE){
     X <- dat1[[1]]
     Nx <- dat1[[2]]
     nloci <- ncol(X)
- 
+
     # MLEs
-    if(is.null(plugin)){
-      out <- estsnpmodel(X, Nx)
-      out2 <- out[[2]]
-    }else{
-      out <- estsnpmodel_plugin(X, Nx, plugin)
-      out2 <- out[[2]]
-    }
-    
-    rnames <- as.integer(rownames(out2)) - 1
+    out <- estsnpmodel(X, Nx)
+    out2 <- out[[2]]
+    rnames1 <- as.integer(rownames(out2)) - 1
+    rnames <- rnames1
     nh <- length(rnames)
     dat <- array(0,c(nh,nloci))
-    for(k in 0:(nloci-1)){
+    for(k in 0:(nloci-1)){ #for each locus
         re <- rnames%%(2^(nloci-k-1))
         dat[,nloci-k] <- (rnames-re)/(2^(nloci-k-1))
         rnames <- re
@@ -409,11 +404,12 @@ mle <- function(df, id=TRUE, plugin=NULL, bootstrap=TRUE){
     # Bootstrap CIs
     if(bootstrap){
       nhap  <- length(out2)
-      B     <- 1000
+      B     <- 10000
       alpha <- 0.05
       N     <- sum(Nx)
       prob  <- Nx/N
       Estim <- array(0, dim = c((nhap+1), B))
+      rownames(Estim) <- c('l',(rnames1+1))
       for (l in 1:B){
         infct <- vector(mode = "list", length = 2)
         samp  <- rmultinom(N, 1, prob)
@@ -421,23 +417,16 @@ mle <- function(df, id=TRUE, plugin=NULL, bootstrap=TRUE){
         pick  <- tmp == 0
         infct[[1]]  <- X[!pick,]
         infct[[2]]  <- tmp[!pick]
-        Estim[,l]   <- unlist(estsnpmodel(infct[[1]], infct[[2]]))                             ## Evaluating and saving the Estimates
+        tmp1 <- estsnpmodel(infct[[1]], infct[[2]])
+        rnames <- as.integer(rownames(tmp1[[2]]))
+        Estim[1,l] <- unlist(tmp1[[1]])  
+        Estim[as.character(rnames),l] <- unlist(tmp1[[2]])                             ## Evaluating and saving the Estimates
       }
-
       perc <- t(apply(Estim, 1, quantile, c(alpha/2, (1-alpha/2))))
-      if(is.null(plugin)){
-        lambdaCI      <- 2*out[[1]]-perc[1,]
-        lambdaCI[1:2] <- lambdaCI[c(2,1)]
-        out3          <- c(unlist(out[[1]]), lambdaCI)
-        names(out3)   <- c('', '2.5%', '97.5%') 
-      }else{
-        out3        <- out[[1]]
-        names(out3) <- c('') 
-      }
-      
-      freqCI       <- 2*out2[,1] - perc[2:(nhap+1),]
-      freqCI[,1:2] <- freqCI[,c(2,1)]
-      out4         <- cbind(out2,freqCI)
+      out3 <- c(unlist(out[[1]]), perc[1,])
+      names(out3) <- c('', '2.5%', '97.5%') 
+
+      out4 <- cbind(out2,perc[2:(nhap+1),])
 
       out <- list(out3, out4, dat)
     }else{
