@@ -2,7 +2,7 @@
 # Objective    : Contains implementation of the model (EM-algorithm) and supporting functions
 # Created by   : Christian Tsoungui Obama, Kristan. A. Schneider
 # Created on   : 26.04.22
-# Last modified: 29.07.22
+# Last modified: 30.07.22
 
 #################################
 # Function varsets(n,l) outputs all possible vectors of length n with entries 0,.., l-1
@@ -117,7 +117,64 @@ gen_func <- function(x, lambd){
 # The function estsnpmodel(X,Nx) implements the EM algorithm and returns the MLEs, i.e., 
 # estimates of haplotype frequencies and Poisson parameter.
 #################################
-estsnpmodel <- function(X, Nx){
+estsnpmodel <- function(X, Nx, BC=FALSE, method='bootstrap', Bbias=10000, plugin=NULL){
+  
+  out.temp <- estsnpmodel1(X,Nx,plugin=plugin)
+  rnames1 <- as.integer(rownames(out.temp[[2]])) - 1
+  rnames <- rnames1
+  nhap <- length(out.temp[[2]])
+  if(BC){
+    N <- sum(Nx)
+    if(method == 'bootstrap'){
+      infct <- vector(mode = "list", length = 2)
+      prob <- Nx/N
+      Estim <- array(0, dim = c((nhap+1), Bbias))
+      rownames(Estim) <- c('l',(rnames1+1))
+      for (l in 1:Bbias){
+        samp  <- rmultinom(N, 1, prob)
+        tmp   <- rowSums(samp)
+        pick  <- tmp == 0
+        infct[[1]]  <- X[!pick,]
+        infct[[2]]  <- tmp[!pick]
+        tmp1        <- estsnpmodel1(infct[[1]], infct[[2]], plugin=plugin)
+        rnames      <- as.integer(rownames(tmp1[[2]]))
+        Estim[1,l]  <- unlist(tmp1[[1]])  
+        Estim[as.character(rnames),l] <- unlist(tmp1[[2]])
+      }
+      bias  <- rowSums(Estim)/Bbias
+      lamBC <- 2*out.temp[[1]][1]  - bias[1]
+      ppBC  <- 2*out.temp[[2]] - bias[-1]
+    }else{
+      if(method=="jackknife"){
+        J = length(Nx)
+        Estim <- array(0, dim = c((nhap+1), J))
+        rownames(Estim) <- c('l',(rnames1+1))
+        for(j in 1:J){
+          NxJ         <- Nx 
+          NxJ[j]      <- NxJ[j]-1 
+          pick        <- NxJ !=0
+          infct[[1]]  <- X[pick,]
+          infct[[2]]  <- NxJ[pick]
+          tmp1        <- estsnpmodel1(infct[[1]], infct[[2]], plugin=plugin)
+          rnames      <- as.integer(rownames(tmp1[[2]]))
+          Estim[1,j]  <- unlist(tmp1[[1]])  
+          Estim[as.character(rnames),j] <- unlist(tmp1[[2]]) 
+        }
+        bias  <- Estim %*% Nx/N
+        lamBC <- out.temp[[1]][1] - (N-1)*( bias[1] - out.temp[[1]][1]) 
+        ppBC  <- out.temp[[2]] - (N-1)*( bias[-1] - out.temp[[2]])
+      }else{
+        warning("method needs to be either bootstrap or jackknife")
+      }
+    }
+    out <- list(lamBC, ppBC)
+  }else{
+    out <- out.temp
+  }
+  out
+}
+
+estsnpmodel0 <- function(X, Nx){
   eps <- 10^-8  # Error
   N <- sum(Nx)  # Sample size
   nn <- nrow(X) # Number of different observations present in the dataset
@@ -198,7 +255,6 @@ estsnpmodel <- function(X, Nx){
       Ccoeff <- Ccoeff + CC*denom
       
       Bcoeff <- Bcoeff + num*denom
-      
     }
     
     Ccoeff <- Ccoeff/N
@@ -235,15 +291,15 @@ estsnpmodel <- function(X, Nx){
       la <- xt
       pp <- ppn
     }
+  
   list(la, pp)
 }
-
 
 #################################
 # The function estsnpmodel_plugin(X,Nx,lam) implements the EM algorithm with the Poisson parameter as plugin estimate
 # and returns the plugin Poisson parameter and the MLEs for haplotype frequencies.
 #################################
-estsnpmodel_plugin <- function(X,Nx,lam){
+estsnpmodel_plugin <- function(X, Nx,lam){
   eps <- 10^-8  # Error
   N <- sum(Nx)  # Sample size
   nn <- nrow(X) # Number of different observations present in the dataset
@@ -338,6 +394,19 @@ estsnpmodel_plugin <- function(X,Nx,lam){
 }
 
 #################################
+# The function estsnpmodel1(X,Nx,plugin) implements the EM algorithm with the plugin argument defining the value of the Poisson parameter 
+# if plugin=NULL, the Poisson parameter is estimated from the data in which case the MLEs are obtained using the function estsnpmodel0(X, Nx),
+# otherwise, the value of plugin is used as pugin-estimate of the Poisson parameter and the MLEs are obtained using the function estsnpmodel_plugin(X, Nx, plugin).
+#################################
+estsnpmodel1 <- function(X, Nx, plugin=NULL){
+  if(is.null(plugin)){
+    out<- estsnpmodel0(X, Nx) # calculates the uncorrected estimate
+  }else{
+    out <- estsnpmodel_plugin(X, Nx, plugin) # calculates the uncorrected estimate
+  }
+}
+
+#################################
 # The function reform(X1,id) takes as input the dataset in the 0-1-2-notation and returns a matrix of the observations,
 # and a vector of the counts counts of those observations, i.e., number of times each observation is made in the dataset.
 #################################
@@ -374,76 +443,67 @@ reform <- function(X1, id=TRUE){
 # with or without the Poisson parameter as a plug-in estimate, respectively. The function outputs the estimates for haplotype frequencies,
 # Poisson parameters, and a matrix of detected haplotypes.
 #################################
-mle <- function(df, id = TRUE, plugin=NULL, bootstrap=FALSE, B=10000, alpha=0.05){
-    # This function removes the ID column if there is one,
-    # then it derives the number of time each observation is made in the dataset,
-    # finally, the MLE are obtained and return in a list. The argument plugin allows to input the Poisson parameter as a plugin-estimate,
-    # while the bootstrap argument is a boolean variable that specifies wether to output bootstrap confidence intervals (CIs). 
-    # B and alpha are respectively the number of bootstrap repeats and alpha-level for the CIs. By default, id=TRUE, plugin=NULL, 
-    # bootstrap=FALSE, B=10000, and alpha=0.05. 
+mle <-function(Data, id=TRUE, plugin=NULL, CI=FALSE, BC=FALSE, method="bootstrap", Bbias=10000, B=10000, alpha=0.05){
+  
+  dat1  <- reform(Data, id=id)
+  X     <- dat1[[1]]
+  Nx    <- dat1[[2]]
+  nloci <- ncol(X)
 
-    dat1 <- reform(df, id=id)
-    X <- dat1[[1]]
-    Nx <- dat1[[2]]
-    nloci <- ncol(X)
+  # MLEs
+  out <- estsnpmodel(X, Nx, BC=BC, method=method, Bbias=Bbias, plugin=plugin)
 
-    # MLEs
+  out2 <- out[[2]]
+  rnames1 <- as.integer(rownames(out2)) - 1
+  rnames <- rnames1
+  nh <- length(rnames)
+  dat <- array(0,c(nh,nloci))
+  for(k in 0:(nloci-1)){ #for each locus
+      re <- rnames%%(2^(nloci-k-1))
+      dat[,nloci-k] <- (rnames-re)/(2^(nloci-k-1))
+      rnames <- re
+  } 
+  for(i in 1:nh){
+      rnames[i] <- paste(dat[i,], collapse = '')
+  }
+  rownames(out2) <- rnames
+
+  # Bootstrap CIs
+  if(CI){
+    nhap  <- length(out2)
+    N     <- sum(Nx)
+    prob  <- Nx/N
+    Estim <- array(0, dim = c((nhap+1), B))
+    rownames(Estim) <- c('l',(rnames1+1))
+    for (l in 1:B){
+      infct <- vector(mode = "list", length = 2)
+      samp  <- rmultinom(N, 1, prob)
+      tmp   <- rowSums(samp)
+      pick  <- tmp == 0
+      infct[[1]]  <- X[!pick,]
+      infct[[2]]  <- tmp[!pick]
+      tmp1        <- estsnpmodel(infct[[1]], infct[[2]], BC=BC, method=method, Bbias=Bbias, plugin=plugin)
+      rnames      <- as.integer(rownames(tmp1[[2]]))
+      Estim[1,l]  <- unlist(tmp1[[1]])  
+      Estim[as.character(rnames),l] <- unlist(tmp1[[2]])                            
+    }
+    perc <- t(apply(Estim, 1, quantile, c(alpha/2, (1-alpha/2))))
     if(is.null(plugin)){
-      out <- estsnpmodel(X, Nx)
+      out3 <- c(unlist(out[[1]]), perc[1,])
+      names(out3) <- c('', paste0(as.character((alpha/2)*100), '%'), paste0(as.character((1-alpha/2)*100), '%')) 
     }else{
-      out <- estsnpmodel_plugin(X, Nx, plugin)
+      out3 <- out[[1]]
     }
-    out2 <- out[[2]]
-    rnames1 <- as.integer(rownames(out2)) - 1
-    rnames <- rnames1
-    nh <- length(rnames)
-    dat <- array(0,c(nh,nloci))
-    for(k in 0:(nloci-1)){ #for each locus
-        re <- rnames%%(2^(nloci-k-1))
-        dat[,nloci-k] <- (rnames-re)/(2^(nloci-k-1))
-        rnames <- re
-    } 
-    for(i in 1:nh){
-        rnames[i] <- paste(dat[i,], collapse = '')
-    }
-    rownames(out2) <- rnames
+    out4 <- cbind(out2,perc[2:(nhap+1),])
 
-    # Bootstrap CIs
-    if(bootstrap){
-      nhap  <- length(out2)
-      N     <- sum(Nx)
-      prob  <- Nx/N
-      Estim <- array(0, dim = c((nhap+1), B))
-      rownames(Estim) <- c('l',(rnames1+1))
-      for (l in 1:B){
-        infct <- vector(mode = "list", length = 2)
-        samp  <- rmultinom(N, 1, prob)
-        tmp   <- rowSums(samp)
-        pick  <- tmp == 0
-        infct[[1]]  <- X[!pick,]
-        infct[[2]]  <- tmp[!pick]
-        tmp1        <- estsnpmodel(infct[[1]], infct[[2]])
-        rnames      <- as.integer(rownames(tmp1[[2]]))
-        Estim[1,l]  <- unlist(tmp1[[1]])  
-        Estim[as.character(rnames),l] <- unlist(tmp1[[2]])      ## Evaluating and saving the Estimates
-      }
-      perc <- t(apply(Estim, 1, quantile, c(alpha/2, (1-alpha/2))))
-      if(is.null(plugin)){
-        out3 <- c(unlist(out[[1]]), perc[1,])
-        names(out3) <- c('', paste0(as.character((alpha/2)*100), '%'), paste0(as.character((1-alpha/2)*100), '%')) 
-      }else{
-        out3 <- out[[1]]
-      }
-      out4 <- cbind(out2,perc[2:(nhap+1),])
-
-      out <- list(out3, out4, dat)
-    }else{
-      out1 <- out[[1]]
-      names(out1) <- c('')
-      out <- list(out1, t(out2), dat)
-    }
-    names(out) <- c(expression(lambda), 'p', 'haplotypes')
-    out
+    out <- list(out3, out4, dat)
+  }else{
+    out1 <- out[[1]]
+    names(out1) <- c('')
+    out <- list(out1, t(out2), dat)
+  }
+  names(out) <- c(expression(lambda), 'p', 'haplotypes')
+  out
 }
 
 #################################
