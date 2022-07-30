@@ -114,6 +114,13 @@ gen_func <- function(x, lambd){
 }
 
 #################################
+# Function km_func(m,lambd) calculates the probability of MOI=m assuming a conditiona Poisson distribution.
+#################################
+km_func <- function(m, lambd){
+  (lambd^m)/(factorial(m)*(exp(lambd) - 1))
+}
+
+#################################
 # The function estsnpmodel(X,Nx) implements the EM algorithm and returns the MLEs, i.e., 
 # estimates of haplotype frequencies and Poisson parameter.
 #################################
@@ -695,3 +702,64 @@ estrelprev <- function(df, id = TRUE){
     colnames(out) <- cnames
     out
 }
+
+
+#################################
+# The function samplwiseMOI(M=10, X, est) estimates the sample wise MOI, i.e., the value of MOI m underlying  
+# an observation (or sample) X. The function takes as input the upper bound M in which of the possible domain
+# in which the true MOI lies, the observation X and the estimated Poisson parameter and haplotype frequencies (MLEs).
+#################################
+
+samplwiseMOI <- function(M=10, X, est){
+  n <- length(X)
+  xx <- array(X,c(1,n)) # xx = observation
+  sel <- (1:n)[xx==2]       # Identifying the loci where the 2 alleles are observed
+  l <- length(sel)          # Counting the number of loci where the 2 alleles are observed
+
+  if(l==0){                 # If the infection is a haplotype (only one allele per locus)
+    yy <- xx
+  }else{ 
+    yy <- xx[rep(1,3^l),]
+    yy[,sel] <- varsets(3,l) # Set of all possible observations which combinations can form xx $\mathscr{A}_{y}$
+  }
+  bin <- 2^((n-1):0)
+  iilist <- list()
+  siglist <- list()
+  for(i in 1:3^l){
+    y1 <- array(yy[i,],c(1,n)) # Observation {\pmb y} in the set $\mathscr{A}_{y}$
+    sel <- (1:n)[y1==2]
+    l1 <- length(sel)
+    if(l1==0){
+      ii <- y1
+    }else{
+      ii <- y1[rep(1,2^l1),]
+      ii[,sel] <- varsets(2,l1)
+    }
+    iilist[[i]] <- as.character(ii%*%bin+1)
+    siglist[[i]] <- (-1)^(l-l1)
+  }
+  Ax <- list(iilist,siglist,3^l)
+
+  pp <- est$p[1,]
+  lam <- est$lambda
+  out.temp <- matrix(0, nrow = M, ncol = 2)
+  for(m in 1:M){
+    den  <- 0
+    num  <- 0
+    for(i in 1:Ax[[3]]){   # For all h in Ay
+      p   <- sum(pp[as.integer(Ax[[1]][[i]])])
+      vz  <- Ax[[2]][[i]]
+      num <- num + vz*(p^m)
+      den <- den + vz*gen_func(p, lam)
+    }
+    tmp           <- (km_func(m, lam)*num)/den
+    out.temp[m,] <- c(m, tmp)
+  }
+  colnames(out.temp) <- c('m', 'p')
+  mmax               <- out.temp[which(out.temp[,2] == max(out.temp[,2])), 1]
+  names(mmax)        <- ''
+  out                <- list(mmax, out.temp)
+  names(out)         <- c('MOI', 'probability')
+  out
+}
+
