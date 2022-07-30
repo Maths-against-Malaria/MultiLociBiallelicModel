@@ -493,6 +493,7 @@ mle <-function(Data, id=TRUE, plugin=NULL, CI=FALSE, BC=FALSE, method="bootstrap
       names(out3) <- c('', paste0(as.character((alpha/2)*100), '%'), paste0(as.character((1-alpha/2)*100), '%')) 
     }else{
       out3 <- out[[1]]
+      names(out3) <- c('')
     }
     out4 <- cbind(out2,perc[2:(nhap+1),])
 
