@@ -710,7 +710,7 @@ estrelprev <- function(df, id = TRUE){
 # in which the true MOI lies, the observation X and the estimated Poisson parameter and haplotype frequencies (MLEs).
 #################################
 
-samplwiseMOI <- function(M=10, X, est){
+samplwiseMOI <- function(X, M=10, est){
   n <- length(X)
   xx <- array(X,c(1,n)) # xx = observation
   sel <- (1:n)[xx==2]       # Identifying the loci where the 2 alleles are observed
