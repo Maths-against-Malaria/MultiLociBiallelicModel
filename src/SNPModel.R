@@ -705,12 +705,12 @@ estrelprev <- function(df, id = TRUE){
 
 
 #################################
-# The function samplwiseMOI(M=10, X, est) estimates the sample wise MOI, i.e., the value of MOI m underlying  
+# The function samplwiseMOI(M=10, est, X) estimates the sample wise MOI, i.e., the value of MOI m underlying  
 # an observation (or sample) X. The function takes as input the upper bound M in which of the possible domain
 # in which the true MOI lies, the observation X and the estimated Poisson parameter and haplotype frequencies (MLEs).
 #################################
 
-samplwiseMOI <- function(X, M=10, est){
+samplwiseMOI <- function(X, est, M=10){
   n <- length(X)
   xx <- array(X,c(1,n)) # xx = observation
   sel <- (1:n)[xx==2]       # Identifying the loci where the 2 alleles are observed
